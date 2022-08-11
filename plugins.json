@@ -1,0 +1,149 @@
+[
+    {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=ahdzero.com&sz=%size%",
+        "fileHash": "sha256-41b9957bc88e9a0a10ea71516a8622ebbb0391cd1ec05607e9d9f7e271ac1cba",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/Sirozaki2/037bbb",
+        "fileSize": 43648,
+        "status": 1,
+        "language": "th",
+        "authors": [
+            "popo"
+        ],
+        "tvTypes": [
+            "Anime",
+            "AnimeMovie"
+        ],
+        "version": 9,
+        "internalName": "AHDZero",
+        "description": "AHDZero \u0e2d\u0e19\u0e34\u0e40\u0e21\u0e30 \u0e1e\u0e32\u0e01\u0e22\u0e4c\u0e44\u0e17\u0e22 \u0e0b\u0e31\u0e1a\u0e44\u0e17\u0e22",
+        "url": "https://raw.githubusercontent.com/Sirozaki2/037bbb/builds/AHDZero.cs3",
+        "name": "AHDZero"
+    },
+    {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=037-hdd.com&sz=%size%",
+        "fileHash": "sha256-e0c6deb63ba6280f600df6176a5d97b1d8df572bf86d950e8dd38c56cbff6cdb",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/Sirozaki2/037bbb",
+        "fileSize": 63220,
+        "status": 1,
+        "language": "th",
+        "authors": [
+            "popo"
+        ],
+        "tvTypes": [
+            "Movie",
+            "TvSeries",
+            "Anime"
+        ],
+        "version": 14,
+        "internalName": "ExampleProvider",
+        "description": "037-HDD \u0e14\u0e39\u0e2b\u0e19\u0e31\u0e07\u0e2d\u0e2d\u0e19\u0e44\u0e25\u0e19\u0e4c \u0e0b\u0e35\u0e23\u0e35\u0e2a\u0e4c \u0e2d\u0e19\u0e34\u0e40\u0e21\u0e30",
+        "url": "https://raw.githubusercontent.com/Sirozaki2/037bbb/builds/ExampleProvider.cs3",
+        "name": "ExampleProvider"
+    },
+    {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=movie2freehd.com&sz=%size%",
+        "fileHash": "sha256-f1e1b8f3b8203be19eb040014c1dfe522fd05fb46a6ffaa0b1bd421e401dafe6",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/Sirozaki2/037bbb",
+        "fileSize": 57879,
+        "status": 1,
+        "language": "th",
+        "authors": [
+            "jasdwa22"
+        ],
+        "tvTypes": [
+            "Movie",
+            "TvSeries"
+        ],
+        "version": 9,
+        "internalName": "Movie2FreeHD",
+        "description": "Movie2FreeHD \u0e2b\u0e19\u0e31\u0e07\u0e41\u0e25\u0e30\u0e0b\u0e35\u0e23\u0e35\u0e2a\u0e4c \u0e1e\u0e32\u0e01\u0e22\u0e4c\u0e44\u0e17\u0e22/\u0e0b\u0e31\u0e1a\u0e44\u0e17\u0e22",
+        "url": "https://raw.githubusercontent.com/Sirozaki2/037bbb/builds/Movie2FreeHD.cs3",
+        "name": "Movie2FreeHD"
+    },
+    {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=moviedofree.com&sz=%size%",
+        "fileHash": "sha256-2ce8d8d9ac9588146868f0992e0ad3db7fc2c011ee0f3d76ae4d3adbfacb73fa",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/Sirozaki2/037bbb",
+        "fileSize": 39601,
+        "status": 1,
+        "language": "th",
+        "authors": [
+            "popo"
+        ],
+        "tvTypes": [
+            "Movie"
+        ],
+        "version": 10,
+        "internalName": "MovieDoFree",
+        "description": "Moviedofree \u0e14\u0e39\u0e2b\u0e19\u0e31\u0e07\u0e2d\u0e2d\u0e19\u0e44\u0e25\u0e19\u0e4c",
+        "url": "https://raw.githubusercontent.com/Sirozaki2/037bbb/builds/MovieDoFree.cs3",
+        "name": "MovieDoFree"
+    },
+    {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=nekomiku.net&sz=%size%",
+        "fileHash": "sha256-34972b23ca5646915bb2c52de411198e5696d745a2e8899e9597b4e1399afd1d",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/Sirozaki2/037bbb",
+        "fileSize": 99393,
+        "status": 3,
+        "language": "th",
+        "authors": [
+            "jasdwa22"
+        ],
+        "tvTypes": [
+            "Anime",
+            "AnimeMovie"
+        ],
+        "version": 14,
+        "internalName": "ThaiAnime",
+        "description": "AnimeRuka, AnimeYour, Hit-Anime, Indy-Anime, Neko-Miku, Suba-Anime (\u0e17\u0e14\u0e25\u0e2d\u0e07: \u0e01\u0e32\u0e23\u0e40\u0e25\u0e48\u0e19\u0e02\u0e36\u0e49\u0e19\u0e01\u0e31\u0e1a\u0e42\u0e2e\u0e2a\u0e15\u0e4c\u0e27\u0e34\u0e14\u0e35\u0e42\u0e2d)",
+        "url": "https://raw.githubusercontent.com/Sirozaki2/037bbb/builds/ThaiAnime.cs3",
+        "name": "ThaiAnime"
+    },
+    {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=25-hd.com&sz=%size%",
+        "fileHash": "sha256-a767ba5d8c2fdeb060c9a551ebcb6c2bfef321fbec58f3f259d3cf2d1939bf2b",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/Sirozaki2/037bbb",
+        "fileSize": 62946,
+        "status": 1,
+        "language": "th",
+        "authors": [
+            "popo"
+        ],
+        "tvTypes": [
+            "Movie",
+            "TvSeries"
+        ],
+        "version": 9,
+        "internalName": "TwentyFiveHD",
+        "description": "25-HD \u0e14\u0e39\u0e2b\u0e19\u0e31\u0e07\u0e2d\u0e2d\u0e19\u0e44\u0e25\u0e19\u0e4c\u0e41\u0e25\u0e30\u0e0b\u0e35\u0e23\u0e35\u0e2a\u0e4c",
+        "url": "https://raw.githubusercontent.com/Sirozaki2/037bbb/builds/TwentyFiveHD.cs3",
+        "name": "TwentyFiveHD"
+    },
+    {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=24hd.today&sz=%size%",
+        "fileHash": "sha256-1db12863f77bdf29158cfaa765c833f4bf9e4260db087fee6b269063ec7bfbcb",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/Sirozaki2/037bbb",
+        "fileSize": 48914,
+        "status": 1,
+        "language": "th",
+        "authors": [
+            "popo"
+        ],
+        "tvTypes": [
+            "Movie",
+            "TvSeries"
+        ],
+        "version": 9,
+        "internalName": "TwentyFourHD",
+        "description": "24HD \u0e2b\u0e19\u0e31\u0e07\u0e41\u0e25\u0e30\u0e0b\u0e35\u0e23\u0e35\u0e48\u0e22\u0e4c",
+        "url": "https://raw.githubusercontent.com/Sirozaki2/037bbb/builds/TwentyFourHD.cs3",
+        "name": "TwentyFourHD"
+    }
+]
