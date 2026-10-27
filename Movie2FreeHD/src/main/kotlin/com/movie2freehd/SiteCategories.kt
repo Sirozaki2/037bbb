@@ -45,4 +45,12 @@ internal object SiteCategories {
         "/tag/ดูหนังเต็มเรื่อง" to "ดูหนังเต็มเรื่อง",
         "/tag/เว็บดูหนัง" to "เว็บดูหนัง"
     )
+
+    // Cloudstream waits for every home row; keep the initial request set small.
+    val homeEntries = listOf(
+        "/movies/" to "หนังล่าสุด",
+        "/series/" to "ซีรีส์ล่าสุด",
+        "/tag/nang-ok-mai" to "หนังออกใหม่",
+        "/tag/nang-cartoon" to "หนังการ์ตูน",
+    )
 }

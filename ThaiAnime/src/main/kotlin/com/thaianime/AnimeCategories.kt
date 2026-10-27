@@ -2,6 +2,13 @@ package com.thaianime
 
 internal object AnimeCategories {
     val entries = mapOf(
+        Site.WAKU to listOf(
+            "/" to "อัปเดตล่าสุด",
+            "/anime/" to "อนิเมะทั้งหมด",
+            "/catalog/%e0%b8%8b%e0%b8%b1%e0%b8%9a%e0%b9%84%e0%b8%97%e0%b8%a2/" to "ซับไทย",
+            "/catalog/%e0%b8%9e%e0%b8%b2%e0%b8%81%e0%b8%a2%e0%b9%8c%e0%b9%84%e0%b8%97%e0%b8%a2/" to "พากย์ไทย",
+            "/category/%e0%b9%80%e0%b8%94%e0%b8%ad%e0%b8%b0%e0%b8%a1%e0%b8%b9%e0%b8%9f%e0%b8%a7%e0%b8%b5%e0%b9%88/" to "เดอะมูฟวี่",
+        ),
         Site.NEKO to listOf(
             "/" to "อัปเดตล่าสุด",
             "/category/1" to "ซับไทย",
@@ -54,5 +61,12 @@ internal object AnimeCategories {
             "/the-movie-ova" to "The Movie/OVA",
             "/Anime%E0%B8%97%E0%B8%B1%E0%B9%89%E0%B8%87%E0%B8%AB%E0%B8%A1%E0%B8%94" to "อนิเมะทั้งหมด",
         ),
+    )
+    // Preserve Suba's existing compact menu; other sites use their primary sections.
+    val homeEntries = mapOf(
+        Site.WAKU to entries.getValue(Site.WAKU),
+        Site.NEKO to entries.getValue(Site.NEKO).take(4),
+        Site.RUKA to entries.getValue(Site.RUKA).take(5),
+        Site.SUBA to entries.getValue(Site.SUBA),
     )
 }

@@ -61,4 +61,12 @@ internal object SiteCategories {
         "/war-สงคราม" to "War สงคราม",
         "/western-คาวบอยตะวันตก" to "Western คาวบอยตะวันตก"
     )
+
+    // Cloudstream waits for every home row; keep the initial request set small.
+    val homeEntries = listOf(
+        "/" to "หนังล่าสุด",
+        "/ตัวอย่างหนังใหม่" to "ตัวอย่างหนังใหม่",
+        "/animation-แอนนิเมชั่น" to "Cartoon การ์ตูน",
+        "/หนังไทย" to "หนังไทย",
+    )
 }

@@ -16,7 +16,7 @@ internal object AnimePlayer {
         val config = Regex("""var\s+dtAjax\s*=\s*(\{[^;]+\});""").find(doc.html())?.groupValues?.get(1) ?: return emptyList()
         val node = runCatching { json.readTree(config) }.getOrNull() ?: return emptyList()
         if (node.path("play_method").asText() != "wp_json") return emptyList()
-        val api = AnimeParser.url(doc.baseUri(), node.path("player_api").asText()) ?: return emptyList()
+        val api = AnimeParser.url(doc.baseUri(), node.path(if (URI(doc.baseUri()).host == "anime-waku.com") "url_api" else "player_api").asText()) ?: return emptyList()
         if (URI(api).host != URI(doc.baseUri()).host) return emptyList()
         val version = node.path("player_v").asText("")
         return doc.select(".dooplay_player_option[data-post][data-nume][data-type]").mapNotNull { el ->
@@ -40,7 +40,7 @@ internal object AnimePlayer {
                 }
                 doc.select("main iframe[src][allowfullscreen]").forEach { add(it.attr("src")) }
             }
-            Site.RUKA -> doc.select("#dooplay_player_response iframe[src]").forEach { add(it.attr("src")) }
+            Site.RUKA, Site.WAKU -> doc.select("#dooplay_player_response iframe[src]").forEach { add(it.attr("src")) }
             Site.SEVEN -> Regex("""var\s+PLAYER_URL\s*=\s*["']([^"']+)["']""").find(doc.html())?.let { add(it.groupValues[1]) }
             Site.SUBA -> {
                 doc.select("#show_video_play iframe").forEach { add(it.attr("data-src").ifBlank { it.attr("src") }) }
@@ -55,6 +55,7 @@ internal object AnimePlayer {
         val uri = runCatching { URI(url) }.getOrNull() ?: return false
         val host = uri.host.orEmpty().removePrefix("www.")
         return (host == URI(site.base).host.removePrefix("www.") && when(site) {
+            Site.WAKU -> uri.path.startsWith("/player/")
             Site.NEKO -> uri.path.startsWith("/player/embed")
             Site.SEVEN -> uri.path.matches(Regex("/player(?:y|vy)/\\d+/?"))
             else -> false
@@ -67,6 +68,9 @@ internal object AnimePlayer {
             val decoded = target?.let { runCatching { json.readTree(it).asText() }.getOrNull() }
             return listOfNotNull(AnimeParser.url(doc.baseUri(), decoded)?.let { PlayerSource(it, "ตัวเล่น") })
         }
+        if (host == "anime-waku.com") return doc.select("#embedvideo[src]").mapNotNull { frame ->
+            AnimeParser.url(doc.baseUri(), frame.attr("src"))?.let { PlayerSource(it, "ตัวเล่น") }
+        }.distinctBy { it.url }
         if (host == "anime-seven.com") return doc.select("iframe[src]").mapNotNull { frame ->
             AnimeParser.url(doc.baseUri(), frame.attr("src"))?.let { PlayerSource(it, "ตัวเล่น") }
         }.distinctBy { it.url }

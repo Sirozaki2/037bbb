@@ -11,7 +11,7 @@ import kotlin.coroutines.cancellation.CancellationException
 @CloudstreamPlugin
 class ThaiAnimePlugin : Plugin() {
     override fun load(context: Context) {
-        Site.entries.forEach { registerMainAPI(ThaiAnimeProvider(it)) }
+        Site.enabled.forEach { registerMainAPI(ThaiAnimeProvider(it)) }
     }
 }
 
@@ -24,7 +24,7 @@ internal class ThaiAnimeProvider(private val site: Site) : MainAPI() {
     override val supportedTypes = setOf(TvType.Anime, TvType.AnimeMovie)
     override var sequentialMainPage = true
     override var sequentialMainPageDelay = 100L
-    override val mainPage = AnimeCategories.entries.getValue(site).map { (path, title) -> mainPage(mainUrl + path, title) }
+    override val mainPage = AnimeCategories.homeEntries.getValue(site).map { (path, title) -> mainPage(mainUrl + path, title) }
     private val cloudflare by lazy { CloudflareKiller() }
     private suspend fun document(url: String, fresh: Boolean = false, referer: String = mainUrl): org.jsoup.nodes.Document {
         val response = if (fresh) app.get(url, referer = referer, interceptor = cloudflare, cacheTime = 0) else app.get(url, referer = referer, interceptor = cloudflare)
@@ -117,7 +117,9 @@ internal class ThaiAnimeProvider(private val site: Site) : MainAPI() {
                 return
             }
             AnimePlayer.sources(site, doc).forEach { resolve(it, url, 0) }
-            AnimePlayer.options(doc).forEach { option ->
+            // Waku already renders its primary iframe; request REST only if it yielded no links.
+            val options = if (site == Site.WAKU && emitted.isNotEmpty()) emptyList() else AnimePlayer.options(doc)
+            options.forEach { option ->
                 try {
                     val response = app.get(option.url, referer = url, interceptor = cloudflare, cacheTime = 0)
                     if (response.code == 200) AnimePlayer.ajaxEmbed(response.text, url)?.let { resolve(PlayerSource(it, option.label), url, 0) }

@@ -23,7 +23,7 @@ class TwentyFourHDProvider : MainAPI() {
     override val supportedTypes = setOf(TvType.Movie, TvType.TvSeries)
     override var sequentialMainPage = true
     override var sequentialMainPageDelay = 100L
-    override val mainPage = SiteCategories.entries.map { (path, title) -> mainPage(mainUrl + path, title) }
+    override val mainPage = SiteCategories.homeEntries.map { (path, title) -> mainPage(mainUrl + path, title) }
     private val cloudflare by lazy { CloudflareKiller() }
     private suspend fun document(url: String, fresh: Boolean = false): org.jsoup.nodes.Document {
         val response = if (fresh) app.get(url, interceptor = cloudflare, cacheTime = 0) else app.get(url, interceptor = cloudflare)
