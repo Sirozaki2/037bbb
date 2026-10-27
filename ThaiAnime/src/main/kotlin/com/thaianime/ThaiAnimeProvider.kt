@@ -3,6 +3,7 @@ package com.thaianime
 import android.content.Context
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.network.CloudflareKiller
+import com.lagradost.cloudstream3.network.WebViewResolver
 import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
 import com.lagradost.cloudstream3.plugins.Plugin
 import com.lagradost.cloudstream3.utils.*
@@ -116,17 +117,47 @@ internal class ThaiAnimeProvider(private val site: Site) : MainAPI() {
                 }
                 return
             }
+            if (site == Site.WAKU) {
+                WakuPlayer.sources(doc,
+                    getJson = { endpoint, referer ->
+                        val response = app.get(endpoint, referer = referer, interceptor = cloudflare, cacheTime = 0)
+                        if (response.code == 200) response.text else null
+                    },
+                    resolve = { source, referer -> resolve(source, referer, 0) },
+                    hasLinks = { emitted.isNotEmpty() },
+                )
+                return
+            }
             AnimePlayer.sources(site, doc).forEach { resolve(it, url, 0) }
-            // Waku already renders its primary iframe; request REST only if it yielded no links.
-            val options = if (site == Site.WAKU && emitted.isNotEmpty()) emptyList() else AnimePlayer.options(doc)
-            options.forEach { option ->
+            AnimePlayer.options(doc).forEach { option ->
                 try {
                     val response = app.get(option.url, referer = url, interceptor = cloudflare, cacheTime = 0)
                     if (response.code == 200) AnimePlayer.ajaxEmbed(response.text, url)?.let { resolve(PlayerSource(it, option.label), url, 0) }
                 } catch (error: Exception) { if (error is CancellationException) throw error }
             }
         }
-        page(data, 0)
+        if (site == Site.WAKU) {
+            try { page(data, 0) } catch (error: Exception) { if (error is CancellationException) throw error }
+            if (emitted.isEmpty()) {
+                // Run the real page when its player iframe is created only by JavaScript.
+                // Capture only the observed content HLS route, never generic media/ad requests.
+                try {
+                    val request = WebViewResolver(
+                        interceptUrl = WakuPlayer.manifestPattern,
+                        userAgent = null,
+                        useOkhttp = false,
+                        timeout = 15_000L,
+                    ).resolveUsingWebView(data, referer = "$mainUrl/").first
+                    request?.let(WakuPlayer::browserStream)?.let { stream ->
+                        emit(newExtractorLink(name, "$name - ตัวเล่นเว็บ", stream.url, ExtractorLinkType.M3U8) {
+                            referer = stream.referer
+                            headers = stream.headers
+                            quality = Qualities.Unknown.value
+                        })
+                    }
+                } catch (error: Exception) { if (error is CancellationException) throw error }
+            }
+        } else page(data, 0)
         if (emitted.isEmpty()) throw ErrorLoadingException("$name ไม่พบลิงก์ที่เล่นได้ โฮสต์วิดีโออาจบล็อกหรือยังไม่รองรับ ลองตัวเล่นอื่นในเว็บ")
         return true
     }

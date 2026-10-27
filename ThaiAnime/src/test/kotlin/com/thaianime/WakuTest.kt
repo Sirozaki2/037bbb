@@ -41,7 +41,7 @@ class WakuTest {
             val options = AnimePlayer.options(page)
             assertEquals(1, options.size)
             assertTrue(options.single().url.startsWith("https://anime-waku.com/wp-json/dooplayer/v1/post/"))
-            assertTrue(options.single().url.endsWith("/tv/1"))
+            assertEquals("https://anime-waku.com/wp-json/dooplayer/v1/post/" + (if (episode == 1) "113437" else "113648") + "?type=tv&source=1", options.single().url)
         }
     }
     @Test fun `navigation matches supplied menus and WordPress pagination retains search`() {
