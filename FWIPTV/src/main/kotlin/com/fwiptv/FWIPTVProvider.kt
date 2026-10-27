@@ -53,7 +53,42 @@ class FWIPTVProvider : MainAPI() {
         val embed = FWIPParser.embed(document(data, fresh = true))
             ?: throw ErrorLoadingException("FWIP TV ไม่พบตัวเล่นของเรื่องนี้")
         var found = false
-        // Registered extractors own host-specific playback. Never emit the embed HTML as video.
+        val player = Player123.request(embed, data)
+        if (player != null) {
+            suspend fun play(id: String, label: String) {
+                val response = app.get("${player.api}/videos/$id/play", referer = embed,
+                    headers = player.headers, interceptor = cloudflare, cacheTime = 0)
+                if (response.code !in 200..299) throw ErrorLoadingException("FWIP TV ตัวเล่นไม่พร้อมใช้งาน (HTTP ${response.code})")
+                val result = Player123.result(response.text, player.api)
+                result.source?.let { source ->
+                    callback(newExtractorLink(name, "$name $label", source.url,
+                        if (source.hls) ExtractorLinkType.M3U8 else ExtractorLinkType.VIDEO) {
+                        referer = embed
+                        headers = mapOf("Origin" to player.headers.getValue("x-player-origin"))
+                        quality = Qualities.Unknown.value
+                    })
+                    found = true
+                }
+                result.backup?.let { backup ->
+                    try { loadExtractor(backup, "", subtitleCallback) { callback(it); found = true } }
+                    catch (error: Exception) { if (error is CancellationException) throw error }
+                }
+            }
+            var failure: Exception? = null
+            try { play(player.id, "ตัวเล่นหลัก") }
+            catch (error: Exception) { if (error is CancellationException) throw error; failure = error }
+            try {
+                val info = app.get("${player.api}/videos/${player.id}/thai-version/info", referer = embed,
+                    headers = player.headers, interceptor = cloudflare, cacheTime = 0)
+                if (info.code in 200..299) Player123.thaiVersion(info.text)?.let { (id, label) ->
+                    if (id != player.id) play(id, label)
+                }
+            } catch (error: Exception) { if (error is CancellationException) throw error }
+            if (found) return true
+            if (failure != null) throw ErrorLoadingException("FWIP TV โหลด API ตัวเล่นไม่ได้ ลองใหม่ภายหลังหรือเปิดตรวจสอบในเว็บ")
+            throw ErrorLoadingException("FWIP TV ยังไม่รองรับรูปแบบสตรีมนี้ หรือลิงก์สำรองไม่พร้อมใช้งาน")
+        }
+        // Other hosts remain delegated to the app's registered extractors.
         try {
             loadExtractor(embed, data, subtitleCallback) { found = true; callback(it) }
         } catch (error: Exception) {

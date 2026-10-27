@@ -14,13 +14,16 @@
 | AnimeRuka | หน้าแรก หมวด/หน้า 2 ค้นหา รายละเอียด หนัง REST options; ซีรีส์ตัวอย่างมี 10 ตอนต่อเสียง | แยกพากย์ไทยกับซับไทย; มี HTML ตัวเล่น Abyss/AnimeMami แต่ลิงก์วิดีโอจริงยังต้องตรวจสด |
 | AnimeSeven | หน้าแรก หมวด/หน้า 2 ซีรีส์/หนัง ตัวเล่นซ้อน playery → playervy → Nya | ซีรีส์ตัวอย่างมีซับไทย 4 ตอนและพากย์ไทย 1 ตอนที่มีลิงก์จริง; search เป็นคำค้นว่าง |
 | Suba-Anime | หน้าแรก หมวด ค้นหา รายละเอียด หนัง ตอนและ player | search `sd` มีผลจริง 1 เรื่อง ต่อท้ายด้วยรายการใหม่ 36 เรื่องที่ต้องตัดออก; ตอนที่ 5 ของตัวอย่างยังไม่มา; เพิ่ม player-source/origin-player จากการตรวจสดและดึงชิ้นส่วนวิดีโอได้; category กับ category-page2 ทั้งสองบันทึกจากหน้า 2 |
-| FWIP | รายการ หมวด รายละเอียด ซีรีส์และ URL ของตัวเล่น | ตัวอย่างยังไม่มี HTML ของ `nom-na.player123up.xyz/embed/...`; ไฟล์ YouTube คือ trailer ส่วน preroll คือโฆษณา |
+| FWIP | รวม iframe `33202198-a103-4423-9eee-0746c6b9798c.html` และ Next.js chunks จาก fwip-player/2 | พบเงื่อนไข Playback stopped ใน `1ruy-ewmja7ms.js.ดาวน์โหลด`; API `/api/backend/videos/{id}/play`, headers x-player-origin/x-embed-origin และแหล่งเสียงเพิ่มเติม; API สดยัง 403 |
+| Movie2Free.co | หน้าแรก หมวด รายละเอียด wrapper ssplayer และ FastCDN | หน้าแรก grid หลัก 36 เรื่อง ไม่รวม TOP10/แนะนำ; search บันทึกคำค้นว่าง ใช้ schema AJAX จากสคริปต์เว็บ; ตัวเล่นมีครบสามทางเลือก |
 | 24HD/AHDZero/Movie2FreeHD | เก็บตัวอย่างใหม่จาก master ไว้ครบ | ตัวอย่าง regression จาก PR ก่อนอยู่ใน `samples/regression/` เพื่อคงการตรวจพฤติกรรมเดิม |
 
 ## ไฟล์ที่ช่วยตรวจการเล่นต่อได้
 
-- FWIP: URL เรื่อง/ตอนที่ขึ้น `playback stopped`, ระบุว่าเกิดบนเว็บหรือใน Cloudstream พร้อมภาพ error
-  และ HTML ของ iframe `nom-na.player123up.xyz/embed/...` ถ้าเปิดได้
+- FWIP: ได้ HTML ของ iframe และคลิป Chrome แล้ว ไม่ต้องส่งหน้าเดิมซ้ำ
+  หากจะยืนยันรูปแบบลิงก์จริงเพิ่มเติม ขอ JSON response ของ `/api/backend/videos/{id}/play`
+  และ `/thai-version/info` โดยตัด Cookie/Authorization ออก; รูปแบบ opaque ยังไม่รองรับ
+- Movie2Free.co: หน้าค้นหาที่มี keyword และผลลัพธ์ หรือ JSON จาก `movie_search_ajax` เพื่อยืนยันผลค้นหาจริงเพิ่มเติม
 - Neko: HTML ของหน้าปลายทาง `app.akuma-stream.com/watch/...` หลังเปิดตอนและกดเล่น
 - AnimeRuka: Network request/response ของตัวเล่น AnimeMami/Abyss ที่โหลดวิดีโอ (ไม่นำลิงก์ blob ไปใช้โดยตรง)
 - Suba: ถ้าตัวเล่นหลักล้มเหลว ขอผลของสำรอง1/สำรอง2 และคำขอที่โหลดวิดีโอจริง
