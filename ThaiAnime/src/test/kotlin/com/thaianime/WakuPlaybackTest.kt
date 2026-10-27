@@ -18,6 +18,8 @@ class WakuPlaybackTest {
         // Independent evidence: the site's captured JS passes type/source as query parameters.
         val script = File(root, "episode1_files/front.ajax.js.ดาวน์โหลด").readText()
         assertTrue(script.contains("getJSON(dtAjax.url_api+a+\"?type=\"+type+\"&source=\"+nume"))
+        assertTrue(File(root, "episode1_files/jquery.min.js.ดาวน์โหลด").readText().contains("X-Requested-With"))
+        assertEquals("XMLHttpRequest", WakuPlayer.ajaxHeaders["X-Requested-With"])
         val wrapper = Samples.doc(File(root, "episode1_files/saved_resource.html"), true)
         val inner = Samples.doc(File(root, "episode1_files/mov_G3JkxbPKmYr7iS.html"))
         val apiCalls = mutableListOf<String>()
@@ -80,6 +82,18 @@ class WakuPlaybackTest {
             WakuPlayer.sources(doc, getJson = { _, _ -> throw CancellationException("cancel") }, resolve = { _, _ -> }, hasLinks = { false })
             fail("Cancellation must propagate")
         } catch (_: CancellationException) { }
+    }
+
+    @Test fun `browser captures content iframe before any playback or HLS request`() {
+        for (episode in listOf(1, 2)) {
+            val dir = File(root, "episode${episode}_files")
+            val inner = Samples.doc(dir.listFiles()!!.single { it.name.startsWith("mov_") })
+            assertTrue(WakuPlayer.capturePattern.matches(inner.baseUri()))
+            assertTrue(WakuPlayer.playerPattern.matches(inner.baseUri()))
+            assertFalse(WakuPlayer.manifestPattern.matches(inner.baseUri()))
+        }
+        assertFalse(WakuPlayer.capturePattern.matches("https://nya.animenani.com.evil.invalid/embed/mov_ad"))
+        assertFalse(WakuPlayer.capturePattern.matches("https://nya.animenani.com/ads/mov_ad"))
     }
 
     @Test fun `browser capture accepts actual content master route and preserves request headers`() {

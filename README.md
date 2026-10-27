@@ -2,7 +2,7 @@
 
 - ปิด AnimeSeven, Movie2Free.co และ FWIP TV ตามคำขอ: ไม่เผยแพร่สองแพ็กเกจหลัง และ ThaiAnime ไม่ลงทะเบียน AnimeSeven
   เก็บ source และ samples เดิมไว้อ้างอิงเท่านั้น หากเคยติดตั้ง Movie2Free/FWIPTV ให้ถอนส่วนขยายทั้งสองในแอปด้วย
-  อัปเดต ThaiAnime v6 แล้วเริ่มแอปใหม่เพื่อเอา AnimeSeven ออกจากรายการ
+  อัปเดต ThaiAnime v7 แล้วเริ่มแอปใหม่เพื่อเอา AnimeSeven ออกจากรายการ
 - หน้าแรกเหลือหมวดหลัก: 037-HDD 5, 25-HD 5, Moviedofree 4, AHDZero 4, 24HD 5, Movie2FreeHD 4,
   Neko-Miku 4 และ AnimeRuka 5; Suba-Anime คงเมนูเดิม
   หมวดรองปี/ประเทศ/genre ไม่แสดงในตัวกรองหน้าแรก แต่ยังค้นหาชื่อเรื่องและแบ่งหน้าหมวดหลักได้
@@ -12,9 +12,15 @@
   ใช้ iframe ที่เว็บแสดงก่อน และเรียก REST สำรองเมื่อยังไม่พบลิงก์
   v6 แก้ URL ของ REST เป็น `/post/<id>?type=tv&source=<หมายเลข>` ตาม JavaScript จริงของเว็บ
   รองรับ API ที่ส่ง iframe HTML และทดสอบกรณี HTML เริ่มต้นยังไม่มี iframe
-  หาก HTTP ยังไม่พบลิงก์ จะเปิดหน้าตอนใน WebView ของแอปด้วย native networking สูงสุด 15 วินาที
-  จับเฉพาะ HLS route ที่พบในตัวเล่นจริง พร้อม Referer/User-Agent ของคำขอนั้น
-  ตัวอ่านทดสอบกับ HTML สองตอนแล้ว; HTTP สดจาก sandbox ยังถูก Cloudflare 403 และยังไม่ยืนยัน WebView/การเล่นบน Android
+  API ส่ง X-Requested-With ตาม jQuery และใช้ cookie/UA จากหน้าแค็ตตาล็อก
+  ขั้นตอนเล่นจะไม่เปิด Cloudflare challenge 60 วินาทีซ้ำให้แต่ละ API/iframe ที่ถูกบล็อก
+  หาก HTTP ยังไม่พบลิงก์ จะเปิดหน้าตอนใน WebView ของแอปด้วย native networking สูงสุด 8 วินาที
+  v7 จับ URL iframe ของ Nya ตั้งแต่เริ่มโหลด จึงไม่ต้องรอคำขอ HLS หลัง Play
+  ดึง bootstrap สดด้วย User-Agent ที่ตรวจว่าใช้ได้ แล้วคง Referer ของหน้าตัวเล่น
+  ชิ้นส่วน `.webp` ของ Nya มี PNG นำหน้า MPEG-TS: v7 อ่านขอบเขต PNG chunks และตรวจ TS sync ก่อนตัดออก
+  ไม่ยึดจำนวนไบต์ตายตัว และรองรับ logical byte range สำหรับการ seek ของ Media3
+  ตรวจด้วย production parser/interceptor ถึงชิ้นส่วนวิดีโอสดและถอดภาพ H.264 1080p ได้แล้ว
+  แต่เส้นทาง Waku → API → wrapper ยังติด HTTP403 จาก sandbox และยังไม่ยืนยัน WebView/การเล่นบน Android
 - ตอนนี้เผยแพร่ 7 แพ็กเกจ รวม 10 แหล่ง (รวม Anime-Waku)
 
 ## ปลั๊กอินสำหรับ Cloudstream

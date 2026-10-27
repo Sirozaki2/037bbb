@@ -11,6 +11,11 @@ internal object WakuPlayer {
     // The opaque /o/<id>/a route is the HLS master used by both supplied nya player bootstraps.
     val manifestPattern = Regex("""^https://cat\.animenani\.com/o/[A-Za-z0-9_-]+/a(?:\?[^#]*)?$""")
 
+    val playerPattern = Regex("""^https://nya\.animenani\.com/embed/mov_[A-Za-z0-9_-]+(?:\?[^#]*)?$""")
+    val capturePattern = Regex("(?:${playerPattern.pattern})|(?:${manifestPattern.pattern})")
+    const val mediaUserAgent = "Mozilla/5.0"
+    val ajaxHeaders = mapOf("X-Requested-With" to "XMLHttpRequest", "Accept" to "application/json, text/javascript, */*; q=0.01")
+
     suspend fun sources(
         doc: Document,
         getJson: suspend (String, String) -> String?,
