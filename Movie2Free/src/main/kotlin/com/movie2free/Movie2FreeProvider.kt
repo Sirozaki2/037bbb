@@ -55,6 +55,9 @@ class Movie2FreeProvider : MainAPI() {
             plot = detail.plot; year = detail.year; tags = detail.tags
         }
     }
+    override fun getVideoInterceptor(extractorLink: ExtractorLink): okhttp3.Interceptor? =
+        if (extractorLink.extractorData == "fastcdn-png545") FastCdnInterceptor() else null
+
     override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
         val embed = Movie2FreeParser.embed(document(data, fresh = true))
             ?: throw ErrorLoadingException("Movie2Free.co ไม่พบตัวเล่นของเรื่องนี้")
@@ -62,6 +65,7 @@ class Movie2FreeProvider : MainAPI() {
         Movie2FreeResolver.resolve(embed, data, { url, parent -> document(url, parent, fresh = true) }, { stream ->
             callback(newExtractorLink(name, "$name ${stream.label}", stream.url, ExtractorLinkType.M3U8) {
                 referer = stream.referer; quality = Qualities.Unknown.value
+                extractorData = "fastcdn-png545"
             })
             found = true
         }, { url, parent -> loadExtractor(url, parent, subtitleCallback) { callback(it); found = true } })

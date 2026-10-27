@@ -26,8 +26,8 @@ internal class ThaiAnimeProvider(private val site: Site) : MainAPI() {
     override var sequentialMainPageDelay = 100L
     override val mainPage = AnimeCategories.entries.getValue(site).map { (path, title) -> mainPage(mainUrl + path, title) }
     private val cloudflare by lazy { CloudflareKiller() }
-    private suspend fun document(url: String, fresh: Boolean = false): org.jsoup.nodes.Document {
-        val response = if (fresh) app.get(url, interceptor = cloudflare, cacheTime = 0) else app.get(url, interceptor = cloudflare)
+    private suspend fun document(url: String, fresh: Boolean = false, referer: String = mainUrl): org.jsoup.nodes.Document {
+        val response = if (fresh) app.get(url, referer = referer, interceptor = cloudflare, cacheTime = 0) else app.get(url, referer = referer, interceptor = cloudflare)
         if (response.code !in 200..299) throw ErrorLoadingException("$name โหลดหน้าเว็บไม่ได้ (HTTP ${response.code})")
         return response.document.apply { setBaseUri(response.url) }
     }
@@ -60,7 +60,15 @@ internal class ThaiAnimeProvider(private val site: Site) : MainAPI() {
         suspend fun resolve(source: PlayerSource, referer: String, depth: Int) {
             if (depth > 5 || !visited.add(source.url) || visited.size > 20) return
             try {
-                if (site == Site.SUBA && SubaPlayer.isPlayer(source.url)) {
+                if (java.net.URI(source.url).host == "app.akuma-stream.com") {
+                    val doc = document(source.url, fresh = true, referer = referer)
+                    AnimePlayer.akuma(doc)?.let { stream ->
+                        emit(newExtractorLink(name, "$name - Akuma", stream, ExtractorLinkType.M3U8) {
+                            this.referer = doc.baseUri()
+                            quality = Qualities.Unknown.value
+                        })
+                    }
+                } else if (site == Site.SUBA && SubaPlayer.isPlayer(source.url)) {
                     val resolver = SubaPlayer { url, ref ->
                         val response = app.get(url, referer = ref, interceptor = cloudflare, cacheTime = 0)
                         if (response.code !in 200..299) throw ErrorLoadingException("Suba player HTTP ${response.code}")
@@ -73,7 +81,7 @@ internal class ThaiAnimeProvider(private val site: Site) : MainAPI() {
                     }) }
                     if (streams.isEmpty()) loadExtractor(source.url, referer, subtitleCallback, emit)
                 } else if (AnimePlayer.canUnwrap(source.url, site)) {
-                    val doc = document(source.url, fresh = true)
+                    val doc = document(source.url, fresh = true, referer = referer)
                     val manifest = AnimePlayer.manifest(doc)
                     if (manifest != null) emit(newExtractorLink(name, "$name - ${source.label}", manifest, ExtractorLinkType.M3U8) {
                         this.referer = source.url; quality = Qualities.Unknown.value
