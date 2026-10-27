@@ -6,6 +6,15 @@ import org.junit.Test
 import java.io.File
 
 class AnimePlayerTest {
+    @Test fun `Akuma content source retains signed query and excludes other hosts`() {
+        val html = java.io.File("../samples/regression/nekomiku.net/akuma-content.html").readText()
+        val base = "https://app.akuma-stream.com/watch/b50fd31f-55ed-4bac-a0bd-a453fbb74c5b?autoplay=1"
+        val doc = org.jsoup.Jsoup.parse(html, base)
+        assertEquals("https://app.akuma-stream.com/api/manifest/b50fd31f-55ed-4bac-a0bd-a453fbb74c5b/master.m3u8?token=synthetic-test-token", AnimePlayer.akuma(doc))
+        assertNull(AnimePlayer.akuma(org.jsoup.Jsoup.parse(html, "https://other.example/")))
+        assertNull(AnimePlayer.akuma(org.jsoup.Jsoup.parse("<video><source src='https://ads.example/ad.m3u8'></video>", base)))
+    }
+
     @Test fun `Neko uses content VideoObject and never Spotify or fake preroll media`() {
         val doc = Samples.doc(Site.NEKO, "episode1", true)
         val sources = AnimePlayer.sources(Site.NEKO, doc)

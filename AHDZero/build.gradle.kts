@@ -1,5 +1,8 @@
-dependencies { testImplementation("junit:junit:4.13.2") }
-version = 2
+dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
+    testImplementation("junit:junit:4.13.2")
+}
+version = 3
 cloudstream {
     language = "th"
     description = "AHDZero อนิเมะ พากย์ไทย ซับไทย"

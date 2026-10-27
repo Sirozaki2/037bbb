@@ -7,6 +7,8 @@ import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
 import com.lagradost.cloudstream3.plugins.Plugin
 import com.lagradost.cloudstream3.utils.*
 import java.net.URLEncoder
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 
 @CloudstreamPlugin
 class AHDZeroPlugin : Plugin() {
@@ -20,8 +22,8 @@ class AHDZeroProvider : MainAPI() {
     override val hasMainPage = true
     override val hasDownloadSupport = true
     override val supportedTypes = setOf(TvType.Anime, TvType.AnimeMovie)
-    override var sequentialMainPage = true
-    override var sequentialMainPageDelay = 100L
+    override var sequentialMainPage = false
+    private val listingRequests = Semaphore(3)
     override val mainPage = SiteCategories.entries.map { (path, title) -> mainPage(mainUrl + path, title) }
     private val cloudflare by lazy { CloudflareKiller() }
     private suspend fun document(url: String, fresh: Boolean = false): org.jsoup.nodes.Document {
@@ -35,9 +37,9 @@ class AHDZeroProvider : MainAPI() {
         addDubStatus(title.contains("พากย์ไทย"))
     }
 
-    override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
+    override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse = listingRequests.withPermit {
         val doc = document(AHDZeroParser.pageUrl(request.data, page))
-        return newHomePageResponse(listOf(HomePageList(request.name, AHDZeroParser.cards(doc).map { it.response() })), AHDZeroParser.hasNext(doc, page))
+        newHomePageResponse(listOf(HomePageList(request.name, AHDZeroParser.cards(doc).map { it.response() })), AHDZeroParser.hasNext(doc, page))
     }
 
     override suspend fun search(query: String): List<SearchResponse> = AHDZeroParser.cards(document("$mainUrl/search/results?q=${URLEncoder.encode(query, "UTF-8")}")).map { it.response() }

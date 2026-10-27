@@ -13,7 +13,7 @@ internal data class PlayerOption(val url: String, val label: String)
 internal object AnimePlayer {
     private val json = ObjectMapper()
     fun options(doc: Document): List<PlayerOption> {
-        val config = Regex("""var\s+dtAjax\s*=\s*(\{[^;]+});""").find(doc.html())?.groupValues?.get(1) ?: return emptyList()
+        val config = Regex("""var\s+dtAjax\s*=\s*(\{[^;]+\});""").find(doc.html())?.groupValues?.get(1) ?: return emptyList()
         val node = runCatching { json.readTree(config) }.getOrNull() ?: return emptyList()
         if (node.path("play_method").asText() != "wp_json") return emptyList()
         val api = AnimeParser.url(doc.baseUri(), node.path("player_api").asText()) ?: return emptyList()
@@ -71,6 +71,15 @@ internal object AnimePlayer {
             AnimeParser.url(doc.baseUri(), frame.attr("src"))?.let { PlayerSource(it, "ตัวเล่น") }
         }.distinctBy { it.url }
         return emptyList()
+    }
+    fun akuma(doc: Document): String? {
+        if (URI(doc.baseUri()).host != "app.akuma-stream.com") return null
+        return doc.select("media-player source[src], video source[src]").firstNotNullOfOrNull {
+            AnimeParser.url(doc.baseUri(), it.attr("src"))?.takeIf { url ->
+                val uri = URI(url)
+                uri.host == "app.akuma-stream.com" && uri.path.startsWith("/api/manifest/") && uri.path.endsWith(".m3u8")
+            }
+        }
     }
     fun manifest(doc: Document): String? {
         if (URI(doc.baseUri()).host != "nya.animenani.com") return null

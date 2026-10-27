@@ -72,6 +72,11 @@ class Movie2FreeHDProvider : MainAPI() {
                 if (response.code == 200) Movie2FreeHDParser.embed(response.text, pageUrl)?.let { players += PlayerLink(it, option.label) }
             } catch (error: Exception) { if (error is CancellationException) throw error }
         }
+        if (players.isEmpty()) throw ErrorLoadingException(
+            if (episode == null && Movie2FreeHDParser.options(doc).isEmpty())
+                "Movie2FreeHD หน้าเว็บเรื่องนี้ยังไม่มีตัวเล่นวิดีโอ"
+            else "Movie2FreeHD ตัวเล่นไม่คืนลิงก์ หรือยังไม่มีลิงก์สำหรับตอนนี้"
+        )
         val resolver = MeePlayerResolver(
             get = { url, ref -> app.get(url, referer = ref, cacheTime = 0).let { PlayerPage(it.url, it.text, it.code) } },
             post = { url, ref, payload -> app.post(url, referer = ref, json = payload, cacheTime = 0).let { PlayerPage(it.url, it.text, it.code) } }

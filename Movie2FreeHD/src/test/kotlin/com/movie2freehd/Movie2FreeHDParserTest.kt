@@ -6,6 +6,12 @@ import org.junit.Test
 import java.io.File
 
 class Movie2FreeHDParserTest {
+    @Test fun `reported title currently has no player options on origin`() {
+        val doc = Jsoup.parse(File("../samples/regression/movie2freehd.com/dont-say-good-luck-no-player.html").readText(), "https://movie2freehd.com/movies/dont-say-good-luck/")
+        assertTrue(doc.select("h1").text().contains("Say Good Luck"))
+        assertTrue(Movie2FreeHDParser.options(doc).isEmpty())
+    }
+
     private val base = "https://movie2freehd.com/"
     private fun fixture(name: String) = File("../samples/regression/movie2freehd.com/$name.html").readText().let {
         Jsoup.parse(it, Jsoup.parse(it).selectFirst("link[rel=canonical]")!!.attr("href"))

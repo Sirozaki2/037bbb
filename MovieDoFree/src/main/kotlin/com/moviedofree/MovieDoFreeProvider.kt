@@ -6,6 +6,8 @@ import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
 import com.lagradost.cloudstream3.plugins.Plugin
 import com.lagradost.cloudstream3.utils.*
 import java.net.URLEncoder
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 
 @CloudstreamPlugin
 class MovieDoFreePlugin : Plugin() {
@@ -19,16 +21,16 @@ class MovieDoFreeProvider : MainAPI() {
     override val hasMainPage = true
     override val hasDownloadSupport = true
     override val supportedTypes = setOf(TvType.Movie)
-    override var sequentialMainPage = true
-    override var sequentialMainPageDelay = 100L
+    override var sequentialMainPage = false
+    private val listingRequests = Semaphore(3)
     override val mainPage = SiteCategories.entries.map { (path, title) -> mainPage(mainUrl + path, title) }
 
     private fun MovieCard.response(): SearchResponse = newMovieSearchResponse(title, url, TvType.Movie) { posterUrl = poster; posterHeaders = mapOf("Referer" to "$mainUrl/") }
 
-    override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
+    override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse = listingRequests.withPermit {
         val url = MovieDoFreeParser.pageUrl(request.data, page)
         val doc = app.get(url).document.apply { setBaseUri(url) }
-        return newHomePageResponse(listOf(HomePageList(request.name, MovieDoFreeParser.cards(doc).map { it.response() })), MovieDoFreeParser.hasNext(doc))
+        newHomePageResponse(listOf(HomePageList(request.name, MovieDoFreeParser.cards(doc).map { it.response() })), MovieDoFreeParser.hasNext(doc))
     }
 
     override suspend fun search(query: String): List<SearchResponse> {

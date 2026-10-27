@@ -35,7 +35,7 @@ internal class SubaPlayer(private val get: suspend (String, String) -> Document)
             if (URI(doc.baseUri()).host != "anim-esun.com") return emptyList()
             val script = doc.select("script").map { it.data() }.firstOrNull { it.contains("playerInstance.setup") } ?: return emptyList()
             val sources = Regex("""sources\s*:\s*\[([\s\S]*?)]""").find(script)?.groupValues?.get(1) ?: return emptyList()
-            return Regex("""\{([^{}]+)}""").findAll(sources).mapNotNull { match ->
+            return Regex("""\{([^{}]+)\}""").findAll(sources).mapNotNull { match ->
                 val value = Regex("""\bfile\s*:\s*['"]([^'"]+)['"]""").find(match.groupValues[1])?.groupValues?.get(1) ?: return@mapNotNull null
                 val url = AnimeParser.url(doc.baseUri(), value) ?: return@mapNotNull null
                 val uri = URI(url)

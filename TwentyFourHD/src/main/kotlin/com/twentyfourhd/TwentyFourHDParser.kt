@@ -36,7 +36,7 @@ internal object TwentyFourHDParser {
             if (title.isBlank()) return@mapNotNull null
             val id = e.classNames().firstOrNull { it.matches(Regex("e-loop-item-\\d+")) }
             // Each card has its own CSS rule; selecting the first background globally repeats one poster.
-            val block = id?.let { Regex("\\.${Regex.escape(it)}\\s[^{}]+\\{[^{}]*}").findAll(styles).map { it.value }.firstOrNull { cssUrl.containsMatchIn(it) } }
+            val block = id?.let { Regex("\\.${Regex.escape(it)}\\s[^{}]+\\{[^{}]*\\}").findAll(styles).map { it.value }.firstOrNull { cssUrl.containsMatchIn(it) } }
             val image: String? = block?.let { cssUrl.find(it)?.groupValues?.get(1) }
                 ?: e.selectFirst("img")?.let { img ->
                     listOf("data-src", "data-lazy-src", "src").firstNotNullOfOrNull { httpUrl(doc.baseUri(), img.attr(it)) }
@@ -63,7 +63,7 @@ internal object TwentyFourHDParser {
 
     fun stream(doc: Document): String? {
         val config = doc.select("script").firstNotNullOfOrNull { script ->
-            Regex("window\\.PLAYER_CONFIG\\s*=\\s*(\\{.*});?", RegexOption.DOT_MATCHES_ALL).find(script.data())?.groupValues?.get(1)
+            Regex("window\\.PLAYER_CONFIG\\s*=\\s*(\\{.*\\});?", RegexOption.DOT_MATCHES_ALL).find(script.data())?.groupValues?.get(1)
         } ?: return null
         val node = runCatching { json.readTree(config) }.getOrNull() ?: return null
         val id = node.path("vdoId").asText()
