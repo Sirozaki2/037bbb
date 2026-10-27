@@ -53,6 +53,11 @@ internal class ThaiAnimeProvider(private val site: Site) : MainAPI() {
             }
         }
     }
+    override fun getVideoInterceptor(extractorLink: ExtractorLink): okhttp3.Interceptor? {
+        if (extractorLink.extractorData != "animemami-playlist") return null
+        val host = runCatching { java.net.URI(extractorLink.url).host }.getOrNull() ?: return null
+        return AnimeMamiInterceptor(host, cloudflare)
+    }
     override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
         val visited = mutableSetOf<String>()
         val emitted = mutableSetOf<String>()
@@ -60,7 +65,18 @@ internal class ThaiAnimeProvider(private val site: Site) : MainAPI() {
         suspend fun resolve(source: PlayerSource, referer: String, depth: Int) {
             if (depth > 5 || !visited.add(source.url) || visited.size > 20) return
             try {
-                if (java.net.URI(source.url).host == "app.akuma-stream.com") {
+                if (site == Site.RUKA && AnimeMami.isPlayer(source.url)) {
+                    val doc = document(source.url, fresh = true, referer = referer)
+                    AnimeMami.stream(doc)?.let { stream ->
+                        stream.subtitle?.let { subtitleCallback(newSubtitleFile(stream.subtitleLanguage, it)) }
+                        emit(newExtractorLink(name, "$name - AnimeMami", stream.url,
+                            if (stream.hls) ExtractorLinkType.M3U8 else ExtractorLinkType.VIDEO) {
+                            this.referer = doc.baseUri()
+                            quality = Qualities.Unknown.value
+                            if (stream.hls) extractorData = "animemami-playlist"
+                        })
+                    }
+                } else if (java.net.URI(source.url).host == "app.akuma-stream.com") {
                     val doc = document(source.url, fresh = true, referer = referer)
                     AnimePlayer.akuma(doc)?.let { stream ->
                         emit(newExtractorLink(name, "$name - Akuma", stream, ExtractorLinkType.M3U8) {

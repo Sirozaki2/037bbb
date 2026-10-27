@@ -47,3 +47,22 @@ ICU ตรวจ regex จริงทั้ง 27 รูปแบบในส�
 **ยังไม่ยืนยันการแก้:** AnimeSeven HTTP403, FWIP API403/อาการ source error 2004, และการเล่น Ruka ผ่าน Abyss/AnimeMami
 การแก้ regex ของ Ruka ไม่ได้แปลว่าโฮสต์วิดีโอทั้งหมดรองรับแล้ว Movie2Free.co ยังต้องลองเรื่องที่ผู้ใช้พบ No Links Found โดยตรง
 ต้องการ URL เรื่อง/ตอนที่เสียและเวอร์ชัน Cloudstream สำหรับตรวจต่อ ไม่มีการข้าม Cloudflare รับประกันได้
+
+## ผลทดสอบจากผู้ใช้และแพตช์ถัดจาก PR #3
+
+ผู้ใช้ Cloudstream 4.8.0 ยืนยันว่า 24HD, 25HD, 037-HDD, Moviedofree, AHDZero, Movie2FreeHD และ Neko-Miku เล่นได้แล้ว
+ยังรายงาน AnimeSeven HTTP403 และ AnimeRuka/Movie2Free.co/FWIP No Links Found
+
+- **Movie2FreeHD v3** เปลี่ยนการโหลด 41 หมวดจากทีละคำขอเป็นพร้อมกันสูงสุดสามคำขอ คงหมวด/ชื่อ/การแบ่งหน้าเดิม
+  Moviedofree/AHDZero มีการจำกัดพร้อมกันสามคำขอตั้งแต่ PR #3 แต่ยังต้องรอทั้ง57/42หมวดก่อน Cloudstream แสดงหน้าแรก
+  ไม่รับรองเวลาที่ลดลงบนอุปกรณ์จริง; การลดจำนวนหมวดต้องเลือกเปลี่ยนเมนูแยกต่างหาก
+- **ThaiAnime v3** เพิ่ม AnimeMami สำหรับ Ruka โดยอ่าน `#app[data-page]` component `Player/Show` เฉพาะ `props.video.url`
+  และคำบรรยายจาก `subtitle_path` ไม่อ่าน default/error/ad video รูปแบบ `.txt` เป็น HLS ตามสคริปต์ตัวเล่น
+  ตัวดัก HTTP แกะเฉพาะ JSON `{p: base64}` ที่ถอดแล้วขึ้นต้น `#EXTM3U` บนโฮสต์ CDN ของลิงก์นั้น
+  จำกัดการตรวจไม่เกิน1MiBและไม่แก้ข้อมูล MP4/segment/playlistปกติ ส่งผ่าน Cloudflare handler เฉพาะโฮสต์นั้น
+  ดึงหน้า AnimeMami ใหม่ทุกครั้งที่กดเล่น ไม่ฝัง URL วิดีโอจากตัวอย่าง
+- หลักฐานเพิ่มเติม: `https://animemami.xyz/build/assets/Show-CjrBPCtA.js` ตอบ200; โค้ดตัวเล่นจริงใช้ `.txt` เป็นHLSและแกะJSON.pด้วยatob
+  CDN ของตัวอย่างตอบ403ใน sandbox จึงยัง **ไม่ยืนยันว่าตอนที่ใช้ AnimeMami เล่นได้บน Android**
+- Abyss ของ Ruka ยังต้องมีตัวส่งข้อมูล chunk/service-worker โดยเฉพาะ ข้อมูล bootstrap เป็น AES-CTR และมี virtual MP4 URLs
+  ไม่ควรส่ง URL เสมือนเหล่านั้นให้ native player ตรง ๆ ยังไม่มีแพตช์การส่งข้อมูล Abyss ในรอบนี้
+- Movie2Free.co/FWIP/AnimeSeven ยังไม่มีหลักฐานการแก้สำเร็จ ไม่ต้องเปิด F12 เพื่อเก็บ HAR เพราะ FWIP มีเงื่อนไขสั่งหยุดเมื่อพบ DevTools
