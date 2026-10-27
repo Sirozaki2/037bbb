@@ -6,7 +6,7 @@ import org.junit.Test
 import java.io.File
 
 class TwentyFourHDParserTest {
-    private fun fixture(name: String) = File("../samples/24hd.today/$name.html").readText().let { html ->
+    private fun fixture(name: String) = File("../samples/regression/24hd.today/$name.html").readText().let { html ->
         val canonical = Jsoup.parse(html).selectFirst("link[rel=canonical]")?.attr("href") ?: "https://www.24hd.today/?s=dfog"
         Jsoup.parse(html, canonical)
     }

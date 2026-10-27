@@ -1,0 +1,34 @@
+/**
+ * M2F People View More / Less
+ * - ใช้ทั้งหน้า single-movies และ single-tvshows
+ * - Toggle .m2f-people-block[data-collapsed] เพื่อแสดง/ซ่อน .m2f-person.m2f-hidden
+ */
+(function () {
+    'use strict';
+
+    function init() {
+        document.querySelectorAll('.m2f-people-block .m2f-view-more-btn').forEach(function (btn) {
+            if (btn.dataset.m2fBound === '1') return;
+            btn.dataset.m2fBound = '1';
+            var origText = btn.textContent.trim();
+            btn.addEventListener('click', function () {
+                var block = btn.closest('.m2f-people-block');
+                if (!block) return;
+                var collapsed = block.getAttribute('data-collapsed') !== '0';
+                if (collapsed) {
+                    block.setAttribute('data-collapsed', '0');
+                    btn.textContent = 'View less';
+                } else {
+                    block.setAttribute('data-collapsed', '1');
+                    btn.textContent = origText;
+                }
+            });
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();

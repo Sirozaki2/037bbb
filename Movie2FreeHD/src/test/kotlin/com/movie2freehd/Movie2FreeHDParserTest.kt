@@ -7,7 +7,7 @@ import java.io.File
 
 class Movie2FreeHDParserTest {
     private val base = "https://movie2freehd.com/"
-    private fun fixture(name: String) = File("../samples/movie2freehd.com/$name.html").readText().let {
+    private fun fixture(name: String) = File("../samples/regression/movie2freehd.com/$name.html").readText().let {
         Jsoup.parse(it, Jsoup.parse(it).selectFirst("link[rel=canonical]")!!.attr("href"))
     }
     @Test fun `home grid has CSS posters and search uses its separate layout`() {

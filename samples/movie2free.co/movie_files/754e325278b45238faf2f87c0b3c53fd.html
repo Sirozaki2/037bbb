@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<!-- saved from url=(0060)https://fastcdnv2.com/embed/754e325278b45238faf2f87c0b3c53fd -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,Chrome=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=9">
+    <title>
+        Drawn Together (2026)
+    </title>
+    <script src="./artplayer-plugin-hls-control.min.js.ดาวน์โหลด"></script>
+    <!-- Google Cast (Chromecast) sender SDK. __onGCastApiAvailable must be
+         defined before the SDK script loads. Default media receiver is used,
+         so it casts the m3u8 URL straight to the TV (no custom receiver). -->
+    <script>
+        window.__castReady = false;
+        window.__onGCastApiAvailable = function (isAvailable) {
+            if (isAvailable && window.cast && window.chrome && chrome.cast) {
+                try {
+                    cast.framework.CastContext.getInstance().setOptions({
+                        receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+                        autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED,
+                    });
+                    window.__castReady = true;
+                } catch (e) { /* cast unavailable */ }
+            }
+        };
+    </script>
+    <script src="./cast_sender.js.ดาวน์โหลด"></script><script src="./cast_framework.js.ดาวน์โหลด"></script><script src="./cast_sender(1).js.ดาวน์โหลด"></script>
+    
+        <!-- P2P stack: a clean hls.js + p2p-media-loader (pinned). Captured into a
+         separate ref so the obfuscation fork (C6C4) loaded later can't clobber it. -->
+        <script src="./hls.js@0.14.17"></script>
+        <script>window.__p2pHls = window.Hls;</script>
+        <script src="./p2p-media-loader-core.min.js.ดาวน์โหลด"></script>
+        <script src="./p2p-media-loader-hlsjs.min.js.ดาวน์โหลด"></script>
+        
+
+
+            <style>
+                html,
+                body {
+                    width: 100%;
+                    height: 100%;
+                    overflow: hidden;
+                }
+
+                * {
+                    margin: 0;
+                    padding: 0;
+                }
+
+                #container {
+                    position: absolute;
+                    left: 0;
+                    right: 0;
+                    top: 0;
+                    bottom: 0;
+                    width: 100%;
+                    height: 100%;
+                }
+            </style>
+
+            <script>
+                const url = "https://fastfastcdn.com/hlsr2/754e325278b45238faf2f87c0b3c53fd/master.m3u8";
+                const poster = "https:////hls.fastcdn888.xyz/files/754e325278b45238faf2f87c0b3c53fd/thumbnail.jpg";
+                // JSON.stringify produces a safely-escaped JS string literal (also avoids XSS).
+                const castTitle = "Drawn Together (2026)";
+                // Domain/referer-matched ads (empty array when no ads apply).
+                let adList = [];
+                try { adList = []; } catch (e) { adList = []; }
+
+                // P2P config (panel-managed). Header (545 bytes) is the fake-PNG prefix
+                // prepended to every .webp segment and must be stripped before demux.
+                const P2P_ENABLED = true;
+                const P2P_HEADER_BYTES = 545;
+                const P2P_TRACKERS = ("wss://tracker.fastfastcdn.com,wss://tracker2.fastfastcdn.com").split(",").map(s => s.trim()).filter(Boolean);
+                const P2P_STUN = ("stun:stun2.l.google.com:19302,stun:stun3.l.google.com:19302,stun:stun4.l.google.com:19302").split(",").map(s => s.trim()).filter(Boolean).map(u => ({ urls: u }));
+
+                function isMobileDevice() {
+                    return /android|iphone|ipad|ipod|iemobile|blackberry|opera mini|mobile/i.test(navigator.userAgent || "");
+                }
+            </script>
+            <style>
+                #ad-overlay {
+                    position: absolute;
+                    inset: 0;
+                    z-index: 9999;
+                    background: #000;
+                    display: none;
+                }
+
+                #ad-overlay video {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: contain;
+                    cursor: pointer;
+                }
+
+                #ad-skip {
+                    position: absolute;
+                    right: 16px;
+                    bottom: 16px;
+                    background: rgba(0, 0, 0, .7);
+                    color: #fff;
+                    border: none;
+                    padding: 10px 16px;
+                    border-radius: 4px;
+                    font-size: 14px;
+                    cursor: pointer;
+                }
+
+                #ad-skip:disabled {
+                    cursor: default;
+                    opacity: .8;
+                }
+
+                #ad-badge {
+                    position: absolute;
+                    left: 16px;
+                    top: 16px;
+                    background: rgba(0, 0, 0, .7);
+                    color: #fff;
+                    padding: 4px 10px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                }
+
+                .p2p-badge {
+                    background: rgba(0, 0, 0, .62);
+                    color: #fff;
+                    font: 12px/1.4 -apple-system, Segoe UI, Roboto, sans-serif;
+                    padding: 5px 10px;
+                    border-radius: 6px;
+                    white-space: nowrap;
+                    pointer-events: none;
+                    user-select: none;
+                }
+
+                .p2p-badge .p2p-dot {
+                    color: #3ddc84;
+                }
+
+                .p2p-toggle {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 34px;
+                    height: 34px;
+                    border-radius: 50%;
+                    background: rgba(0, 0, 0, .55);
+                    color: #fff;
+                    cursor: pointer;
+                    user-select: none;
+                }
+
+                .p2p-toggle:hover {
+                    background: rgba(0, 0, 0, .75);
+                }
+            </style>
+<style id="artplayer-style">.art-video-player{--art-theme: #f00;--art-font-color: #fff;--art-background-color: #000;--art-text-shadow-color: rgba(0, 0, 0, .5);--art-transition-duration: .2s;--art-padding: 10px;--art-border-radius: 3px;--art-progress-height: 6px;--art-progress-color: rgba(255, 255, 255, .25);--art-progress-top-gap: 10px;--art-hover-color: rgba(255, 255, 255, .25);--art-loaded-color: rgba(255, 255, 255, .25);--art-state-size: 80px;--art-state-opacity: .8;--art-bottom-height: 100px;--art-bottom-offset: 20px;--art-bottom-gap: 5px;--art-highlight-width: 8px;--art-highlight-color: rgba(255, 255, 255, .5);--art-control-height: 46px;--art-control-opacity: .75;--art-control-icon-size: 36px;--art-control-icon-scale: 1.1;--art-volume-height: 120px;--art-volume-handle-size: 14px;--art-lock-size: 36px;--art-indicator-scale: 0;--art-indicator-size: 16px;--art-fullscreen-web-index: 9999;--art-settings-icon-size: 24px;--art-settings-max-height: 300px;--art-selector-max-height: 300px;--art-contextmenus-min-width: 250px;--art-subtitle-font-size: 20px;--art-subtitle-gap: 5px;--art-subtitle-bottom: 15px;--art-subtitle-border: #000;--art-widget-background: rgba(0, 0, 0, .85);--art-tip-background: rgba(0, 0, 0, .7);--art-scrollbar-size: 4px;--art-scrollbar-background: rgba(255, 255, 255, .25);--art-scrollbar-background-hover: rgba(255, 255, 255, .5);--art-mini-progress-height: 2px}.art-bg-cover{background-position:center center;background-repeat:no-repeat;background-size:cover}.art-bottom-gradient{background-image:linear-gradient(to top,#000,rgba(0,0,0,.4),transparent);background-repeat:repeat-x;background-position:center bottom}.art-backdrop-filter{-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);background-color:#000000bf!important}.art-truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.art-video-player{position:relative;margin:0 auto;width:100%;height:100%;outline:0;zoom:1;padding:0;text-align:left;direction:ltr;font-size:14px;line-height:1.3;user-select:none;box-sizing:border-box;color:var(--art-font-color);background-color:var(--art-background-color);text-shadow:0 0 2px var(--art-text-shadow-color);font-family:PingFang SC,Helvetica Neue,Microsoft YaHei,Roboto,Arial,sans-serif;-webkit-tap-highlight-color:rgba(0,0,0,0);-ms-touch-action:manipulation;touch-action:manipulation;-ms-high-contrast-adjust:none}.art-video-player *,.art-video-player *:before,.art-video-player *:after{box-sizing:border-box}.art-video-player ::-webkit-scrollbar{width:var(--art-scrollbar-size);height:var(--art-scrollbar-size)}.art-video-player ::-webkit-scrollbar-thumb{background-color:var(--art-scrollbar-background)}.art-video-player ::-webkit-scrollbar-thumb:hover{background-color:var(--art-scrollbar-background-hover)}.art-video-player img{max-width:100%;vertical-align:top}.art-video-player svg{fill:var(--art-font-color)}.art-video-player a{color:var(--art-font-color);text-decoration:none}.art-icon{line-height:1;display:flex;justify-content:center;align-items:center}.art-video-player.art-backdrop .art-contextmenus,.art-video-player.art-backdrop .art-info,.art-video-player.art-backdrop .art-settings,.art-video-player.art-backdrop .art-layer-auto-playback,.art-video-player.art-backdrop .art-selector-list,.art-video-player.art-backdrop .art-volume-inner{-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);background-color:#000000bf!important}.art-video{position:absolute;inset:0;z-index:10;width:100%;height:100%}.art-poster{position:absolute;inset:0;z-index:11;width:100%;height:100%;background-position:center center;background-repeat:no-repeat;background-size:cover;pointer-events:none}.art-video-player .art-subtitle{display:none;justify-content:center;align-items:center;flex-direction:column;position:absolute;z-index:20;width:100%;padding:0 5%;text-align:center;pointer-events:none;gap:var(--art-subtitle-gap);bottom:var(--art-subtitle-bottom);font-size:var(--art-subtitle-font-size);transition:bottom var(--art-transition-duration) ease;text-shadow:var(--art-subtitle-border) 1px 0 1px,var(--art-subtitle-border) 0 1px 1px,var(--art-subtitle-border) -1px 0 1px,var(--art-subtitle-border) 0 -1px 1px,var(--art-subtitle-border) 1px 1px 1px,var(--art-subtitle-border) -1px -1px 1px,var(--art-subtitle-border) 1px -1px 1px,var(--art-subtitle-border) -1px 1px 1px}.art-video-player.art-subtitle-show .art-subtitle{display:flex}.art-video-player.art-control-show .art-subtitle{bottom:calc(var(--art-control-height) + var(--art-subtitle-bottom))}.art-danmuku{position:absolute;inset:0;z-index:30;width:100%;height:100%;pointer-events:none;overflow:hidden}.art-video-player .art-layers{position:absolute;inset:0;z-index:40;width:100%;height:100%;display:none;pointer-events:none}.art-video-player .art-layers .art-layer{pointer-events:auto}.art-video-player.art-layer-show .art-layers{display:flex}.art-video-player .art-mask{display:flex;justify-content:center;align-items:center;position:absolute;inset:0;z-index:50;width:100%;height:100%;pointer-events:none}.art-video-player .art-mask .art-state{display:flex;justify-content:center;align-items:center;opacity:0;transform:scale(2);width:var(--art-state-size);height:var(--art-state-size);transition:all var(--art-transition-duration) ease}.art-video-player.art-mask-show .art-state{pointer-events:auto;opacity:var(--art-state-opacity);transform:scale(1)}.art-video-player.art-loading-show .art-state{display:none}.art-video-player .art-loading{display:none;justify-content:center;align-items:center;position:absolute;inset:0;z-index:70;width:100%;height:100%;pointer-events:none}.art-video-player.art-loading-show .art-loading{display:flex}.art-video-player.art-loading-show .art-mask{display:none}.art-video-player .art-bottom{position:absolute;inset:0;z-index:60;width:100%;height:100%;display:flex;flex-direction:column;justify-content:flex-end;opacity:0;overflow:hidden;pointer-events:none;padding:0 var(--art-padding);transition:all var(--art-transition-duration) ease;background-size:100% var(--art-bottom-height);background-image:linear-gradient(to top,#000,rgba(0,0,0,.4),transparent);background-repeat:repeat-x;background-position:center bottom}.art-video-player .art-bottom .art-controls,.art-video-player .art-bottom .art-progress{transform:translateY(var(--art-bottom-offset));transition:transform var(--art-transition-duration) ease}.art-video-player.art-control-show .art-bottom,.art-video-player.art-hover .art-bottom{opacity:1}.art-video-player.art-control-show .art-bottom .art-controls,.art-video-player.art-hover .art-bottom .art-controls,.art-video-player.art-control-show .art-bottom .art-progress,.art-video-player.art-hover .art-bottom .art-progress{transform:translateY(0)}.art-bottom .art-progress{position:relative;z-index:0;cursor:pointer;pointer-events:auto;padding-top:var(--art-progress-top-gap);padding-bottom:var(--art-bottom-gap)}.art-bottom .art-progress .art-control-progress{position:relative;display:flex;justify-content:center;align-items:center;height:var(--art-progress-height)}.art-bottom .art-progress .art-control-progress .art-control-progress-inner{display:flex;align-items:center;position:relative;height:50%;width:100%;transition:height var(--art-transition-duration) ease;background-color:var(--art-progress-color)}.art-bottom .art-progress .art-control-progress .art-control-progress-inner .art-progress-hover{position:absolute;inset:0;z-index:0;width:100%;height:100%;width:0%;background-color:var(--art-hover-color)}.art-bottom .art-progress .art-control-progress .art-control-progress-inner .art-progress-loaded{position:absolute;inset:0;z-index:10;width:100%;height:100%;width:0%;background-color:var(--art-loaded-color)}.art-bottom .art-progress .art-control-progress .art-control-progress-inner .art-progress-played{position:absolute;inset:0;z-index:20;width:100%;height:100%;width:0%;background-color:var(--art-theme)}.art-bottom .art-progress .art-control-progress .art-control-progress-inner .art-progress-highlight{position:absolute;inset:0;z-index:30;width:100%;height:100%;pointer-events:none}.art-bottom .art-progress .art-control-progress .art-control-progress-inner .art-progress-highlight span{position:absolute;inset:0 auto 0 0;z-index:0;width:100%;height:100%;pointer-events:auto;width:var(--art-highlight-width)!important;transform:translate(calc(var(--art-highlight-width) / -2));background-color:var(--art-highlight-color)}.art-bottom .art-progress .art-control-progress .art-control-progress-inner .art-progress-indicator{display:flex;justify-content:center;align-items:center;position:absolute;z-index:40;left:0;border-radius:50%;width:var(--art-indicator-size);height:var(--art-indicator-size);transform:scale(var(--art-indicator-scale));margin-left:calc(var(--art-indicator-size) / -2);transition:transform var(--art-transition-duration) ease}.art-bottom .art-progress .art-control-progress .art-control-progress-inner .art-progress-indicator .art-icon{width:100%;height:100%;pointer-events:none}.art-bottom .art-progress .art-control-progress .art-control-progress-inner .art-progress-indicator:hover{transform:scale(1.2)!important}.art-bottom .art-progress .art-control-progress .art-control-progress-inner .art-progress-indicator:active{transform:scale(1)!important}.art-bottom .art-progress .art-control-progress .art-control-progress-inner .art-progress-tip{transform-origin:bottom center;transform:scale(.5);opacity:0;position:absolute;z-index:50;top:-25px;left:0;padding:3px 5px;line-height:1;font-size:12px;border-radius:var(--art-border-radius);white-space:nowrap;background-color:var(--art-tip-background);transition:transform var(--art-transition-duration) ease,opacity var(--art-transition-duration) ease}.art-bottom .art-progress .art-control-thumbnails{transform-origin:bottom center;transform:scale(.5);opacity:0;position:absolute;bottom:calc(var(--art-bottom-gap) + 10px);left:0;border-radius:var(--art-border-radius);pointer-events:none;background-color:var(--art-widget-background);transition:transform var(--art-transition-duration) ease,opacity var(--art-transition-duration) ease;box-shadow:0 1px 3px #0003,0 1px 2px -1px #0003}.art-bottom .art-progress:hover .art-control-progress .art-control-progress-inner{height:100%}.art-bottom:hover .art-progress .art-control-progress .art-control-progress-inner .art-progress-indicator{transform:scale(1)}.art-progress-hover .art-bottom .art-progress .art-control-progress .art-control-progress-inner .art-progress-tip,.art-progress-hover .art-bottom .art-progress .art-control-thumbnails{transform:scale(1);opacity:1}.art-video-player .art-controls{position:relative;z-index:10;pointer-events:auto;display:flex;align-items:center;justify-content:space-between;height:var(--art-control-height)}.art-video-player .art-controls .art-controls-left,.art-video-player .art-controls .art-controls-right{display:flex;height:100%}.art-video-player .art-controls .art-controls-center{display:none;justify-content:center;align-items:center;flex:1;height:100%;padding:0 10px}.art-video-player .art-controls .art-controls-right{justify-content:flex-end}.art-video-player .art-controls .art-control{display:flex;justify-content:center;align-items:center;flex-shrink:0;cursor:pointer;white-space:nowrap;opacity:var(--art-control-opacity);min-height:var(--art-control-height);min-width:var(--art-control-height);transition:opacity var(--art-transition-duration) ease}.art-video-player .art-controls .art-control .art-icon{height:var(--art-control-icon-size);width:var(--art-control-icon-size);transform:scale(var(--art-control-icon-scale));transition:transform var(--art-transition-duration) ease}.art-video-player .art-controls .art-control .art-icon:active{transform:scale(calc(var(--art-control-icon-scale) * .8))}.art-video-player .art-controls .art-control:hover{opacity:1}.art-control-volume{position:relative}.art-control-volume .art-volume-panel{display:flex;justify-content:center;align-items:center;position:absolute;left:0;right:0;padding:0 5px;font-size:12px;text-align:center;cursor:default;opacity:0;transform:translateY(10px);pointer-events:none;bottom:var(--art-control-height);width:var(--art-control-height);height:var(--art-volume-height);transition:all var(--art-transition-duration) ease}.art-control-volume .art-volume-panel .art-volume-inner{display:flex;flex-direction:column;align-items:center;gap:10px;height:100%;width:100%;padding:10px 0 12px;border-radius:var(--art-border-radius);background-color:var(--art-widget-background)}.art-control-volume .art-volume-panel .art-volume-inner .art-volume-slider{flex:1;width:100%;display:flex;cursor:pointer;position:relative;justify-content:center}.art-control-volume .art-volume-panel .art-volume-inner .art-volume-slider .art-volume-handle{position:relative;display:flex;justify-content:center;width:2px;border-radius:var(--art-border-radius);overflow:hidden;background-color:#ffffff40}.art-control-volume .art-volume-panel .art-volume-inner .art-volume-slider .art-volume-handle .art-volume-loaded{position:absolute;inset:0;z-index:0;width:100%;height:100%;background-color:var(--art-theme)}.art-control-volume .art-volume-panel .art-volume-inner .art-volume-slider .art-volume-indicator{position:absolute;width:var(--art-volume-handle-size);height:var(--art-volume-handle-size);margin-top:calc(var(--art-volume-handle-size) / -2);flex-shrink:0;transform:scale(1);border-radius:100%;background-color:var(--art-theme);transition:transform var(--art-transition-duration) ease}.art-control-volume .art-volume-panel .art-volume-inner .art-volume-slider:active .art-volume-indicator{transform:scale(.9)}.art-control-volume:hover .art-volume-panel{opacity:1;transform:translateY(0);pointer-events:auto}.art-video-player .art-notice{display:none;position:absolute;inset:0 0 auto;z-index:80;width:100%;height:100%;height:auto;padding:var(--art-padding);pointer-events:none}.art-video-player .art-notice .art-notice-inner{display:inline-flex;padding:5px;line-height:1;border-radius:var(--art-border-radius);background-color:var(--art-tip-background)}.art-video-player.art-notice-show .art-notice{display:flex}.art-video-player .art-contextmenus{display:none;flex-direction:column;position:absolute;z-index:120;padding:5px 0;border-radius:var(--art-border-radius);font-size:12px;background-color:var(--art-widget-background);min-width:var(--art-contextmenus-min-width)}.art-video-player .art-contextmenus .art-contextmenu{cursor:pointer;display:flex;padding:10px 15px;border-bottom:1px solid rgba(255,255,255,.1)}.art-video-player .art-contextmenus .art-contextmenu span{padding:0 8px}.art-video-player .art-contextmenus .art-contextmenu span:hover,.art-video-player .art-contextmenus .art-contextmenu span.art-current{color:var(--art-theme)}.art-video-player .art-contextmenus .art-contextmenu:hover{background-color:#ffffff1a}.art-video-player .art-contextmenus .art-contextmenu:last-child{border-bottom:none}.art-video-player.art-contextmenu-show .art-contextmenus{display:flex}.art-video-player .art-settings{display:none;flex-direction:column;position:absolute;z-index:90;left:auto;overflow-y:auto;overflow-x:hidden;border-radius:var(--art-border-radius);max-height:var(--art-settings-max-height);right:var(--art-padding);bottom:var(--art-control-height);transition:all var(--art-transition-duration) ease;background-color:var(--art-widget-background)}.art-video-player .art-settings .art-setting-panel{display:none;flex-direction:column}.art-video-player .art-settings .art-setting-panel.art-current{display:flex}.art-video-player .art-settings .art-setting-panel .art-setting-item{display:flex;justify-content:space-between;align-items:center;padding:0 5px;cursor:pointer;overflow:hidden;transition:background-color var(--art-transition-duration) ease}.art-video-player .art-settings .art-setting-panel .art-setting-item:hover{background-color:#ffffff1a}.art-video-player .art-settings .art-setting-panel .art-setting-item.art-current{color:var(--art-theme)}.art-video-player .art-settings .art-setting-panel .art-setting-item .art-icon-check{visibility:hidden;height:15px}.art-video-player .art-settings .art-setting-panel .art-setting-item.art-current .art-icon-check{visibility:visible}.art-video-player .art-settings .art-setting-panel .art-setting-item .art-setting-item-left{display:flex;justify-content:center;align-items:center;flex-shrink:0;gap:5px}.art-video-player .art-settings .art-setting-panel .art-setting-item .art-setting-item-left .art-setting-item-left-icon{display:flex;justify-content:center;align-items:center;height:var(--art-settings-icon-size);width:var(--art-settings-icon-size)}.art-video-player .art-settings .art-setting-panel .art-setting-item .art-setting-item-right{display:flex;justify-content:center;align-items:center;gap:5px;font-size:12px}.art-video-player .art-settings .art-setting-panel .art-setting-item .art-setting-item-right .art-setting-item-right-tooltip{white-space:nowrap;color:#ffffff80}.art-video-player .art-settings .art-setting-panel .art-setting-item .art-setting-item-right .art-setting-item-right-icon{display:flex;justify-content:center;align-items:center;min-width:32px;height:24px}.art-video-player .art-settings .art-setting-panel .art-setting-item .art-setting-item-right .art-setting-range{height:3px;width:80px;outline:none;appearance:none;background-color:#fff3}.art-video-player .art-settings .art-setting-panel .art-setting-item-back{border-bottom:1px solid rgba(255,255,255,.1)}.art-video-player.art-setting-show .art-settings{display:flex}.art-video-player .art-info{display:none;position:absolute;left:var(--art-padding);top:var(--art-padding);z-index:100;padding:10px;font-size:12px;border-radius:var(--art-border-radius);background-color:var(--art-widget-background)}.art-video-player .art-info .art-info-panel{display:flex;flex-direction:column;gap:5px}.art-video-player .art-info .art-info-panel .art-info-item{display:flex;align-items:center;gap:5px}.art-video-player .art-info .art-info-panel .art-info-item .art-info-title{width:100px;text-align:right}.art-video-player .art-info .art-info-panel .art-info-item .art-info-content{width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;user-select:all}.art-video-player .art-info .art-info-close{position:absolute;top:5px;right:5px;cursor:pointer}.art-video-player.art-info-show .art-info{display:flex}.art-hide-cursor *{cursor:none!important}.art-video-player[data-aspect-ratio]{overflow:hidden}.art-video-player[data-aspect-ratio] .art-video{object-fit:fill;box-sizing:content-box}.art-fullscreen{--art-progress-height: 8px;--art-indicator-size: 20px;--art-control-height: 60px;--art-control-icon-scale: 1.3}.art-fullscreen-web{--art-progress-height: 8px;--art-indicator-size: 20px;--art-control-height: 60px;--art-control-icon-scale: 1.3;position:fixed;inset:0;z-index:var(--art-fullscreen-web-index);width:100%;height:100%}.art-mini-popup{position:fixed;z-index:9999;width:320px;height:180px;background:#000;border-radius:var(--art-border-radius);cursor:move;user-select:none;overflow:hidden;transition:opacity .2s ease;box-shadow:0 0 5px #00000080}.art-mini-popup svg{fill:#fff}.art-mini-popup .art-video{pointer-events:none}.art-mini-popup .art-mini-close{position:absolute;z-index:20;right:10px;top:10px;cursor:pointer;opacity:0;transition:opacity .2s ease}.art-mini-popup .art-mini-state{position:absolute;inset:0;z-index:30;width:100%;height:100%;display:flex;justify-content:center;align-items:center;pointer-events:none;opacity:0;transition:opacity .2s ease;background-color:#00000040}.art-mini-popup .art-mini-state .art-icon{opacity:.75;cursor:pointer;transform:scale(3);pointer-events:auto;transition:transform .2s ease}.art-mini-popup .art-mini-state .art-icon:active{transform:scale(2.5)}.art-mini-popup.art-mini-dragging{opacity:.9}.art-mini-popup:hover .art-mini-close,.art-mini-popup:hover .art-mini-state{opacity:1}.art-video-player[data-flip=horizontal] .art-video{transform:scaleX(-1)}.art-video-player[data-flip=vertical] .art-video{transform:scaleY(-1)}.art-video-player .art-layer-lock{display:none;justify-content:center;align-items:center;position:absolute;top:50%;border-radius:50%;transform:translateY(-50%);height:var(--art-lock-size);width:var(--art-lock-size);left:var(--art-padding);background-color:var(--art-tip-background)}.art-video-player .art-layer-auto-playback{display:none;gap:10px;align-items:center;position:absolute;border-radius:var(--art-border-radius);padding:10px;line-height:1;left:var(--art-padding);bottom:calc(var(--art-control-height) + var(--art-bottom-gap) + 10px);background-color:var(--art-widget-background)}.art-video-player .art-layer-auto-playback .art-auto-playback-close{display:flex;justify-content:center;align-items:center;cursor:pointer}.art-video-player .art-layer-auto-playback .art-auto-playback-close svg{width:15px;height:15px;fill:var(--art-theme)}.art-video-player .art-layer-auto-playback .art-auto-playback-jump{color:var(--art-theme);cursor:pointer}.art-video-player.art-lock .art-subtitle{bottom:var(--art-subtitle-bottom)!important}.art-video-player.art-mini-progress-bar .art-bottom,.art-video-player.art-lock .art-bottom{opacity:1;padding:0;background-image:none}.art-video-player.art-mini-progress-bar .art-bottom .art-controls,.art-video-player.art-lock .art-bottom .art-controls,.art-video-player.art-mini-progress-bar .art-bottom .art-progress,.art-video-player.art-lock .art-bottom .art-progress{transform:translateY(calc(var(--art-control-height) + var(--art-bottom-gap) + var(--art-progress-height) / 4))}.art-video-player.art-mini-progress-bar .art-bottom .art-progress-indicator,.art-video-player.art-lock .art-bottom .art-progress-indicator{display:none!important}.art-video-player.art-control-show .art-layer-lock{display:flex}.art-control-selector{position:relative;display:flex;justify-content:center}.art-control-selector .art-selector-list{display:flex;flex-direction:column;align-items:center;text-align:center;position:absolute;border-radius:var(--art-border-radius);overflow-y:auto;overflow-x:hidden;opacity:0;transform:translateY(10px);pointer-events:none;bottom:var(--art-control-height);max-height:var(--art-selector-max-height);background-color:var(--art-widget-background);transition:all var(--art-transition-duration) ease}.art-control-selector .art-selector-list .art-selector-item{display:flex;justify-content:center;align-items:center;width:100%;padding:10px 15px;flex-shrink:0;line-height:1}.art-control-selector .art-selector-list .art-selector-item:hover{background-color:#ffffff1a}.art-control-selector .art-selector-list .art-selector-item:hover,.art-control-selector .art-selector-list .art-selector-item.art-current{color:var(--art-theme)}.art-control-selector:hover .art-selector-list{opacity:1;transform:translateY(0);pointer-events:auto}.art-video-player [class*=hint--]{position:relative;display:inline-block;font-style:normal}.art-video-player [class*=hint--]:before,.art-video-player [class*=hint--]:after{position:absolute;-webkit-transform:translate3d(0,0,0);-moz-transform:translate3d(0,0,0);transform:translateZ(0);visibility:hidden;opacity:0;z-index:1000000;pointer-events:none;-webkit-transition:.3s ease;-moz-transition:.3s ease;transition:.3s ease;-webkit-transition-delay:0ms;-moz-transition-delay:0ms;transition-delay:0ms}.art-video-player [class*=hint--]:hover:before,.art-video-player [class*=hint--]:hover:after{visibility:visible;opacity:1}.art-video-player [class*=hint--]:hover:before,.art-video-player [class*=hint--]:hover:after{-webkit-transition-delay:.1s;-moz-transition-delay:.1s;transition-delay:.1s}.art-video-player [class*=hint--]:before{content:"";position:absolute;background:transparent;border:6px solid transparent;z-index:1000001}.art-video-player [class*=hint--]:after{background:#000;color:#fff;padding:8px 10px;font-size:12px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;line-height:12px;white-space:nowrap}.art-video-player [class*=hint--][aria-label]:after{content:attr(aria-label)}.art-video-player [class*=hint--][data-hint]:after{content:attr(data-hint)}.art-video-player [aria-label=""]:before,.art-video-player [aria-label=""]:after,.art-video-player [data-hint=""]:before,.art-video-player [data-hint=""]:after{display:none!important}.art-video-player .hint--top-left:before{border-top-color:#000}.art-video-player .hint--top-right:before{border-top-color:#000}.art-video-player .hint--top:before{border-top-color:#000}.art-video-player .hint--bottom-left:before{border-bottom-color:#000}.art-video-player .hint--bottom-right:before{border-bottom-color:#000}.art-video-player .hint--bottom:before{border-bottom-color:#000}.art-video-player .hint--left:before{border-left-color:#000}.art-video-player .hint--right:before{border-right-color:#000}.art-video-player .hint--top:before{margin-bottom:-11px}.art-video-player .hint--top:before,.art-video-player .hint--top:after{bottom:100%;left:50%}.art-video-player .hint--top:before{left:calc(50% - 6px)}.art-video-player .hint--top:after{-webkit-transform:translateX(-50%);-moz-transform:translateX(-50%);transform:translate(-50%)}.art-video-player .hint--top:hover:before{-webkit-transform:translateY(-8px);-moz-transform:translateY(-8px);transform:translateY(-8px)}.art-video-player .hint--top:hover:after{-webkit-transform:translateX(-50%) translateY(-8px);-moz-transform:translateX(-50%) translateY(-8px);transform:translate(-50%) translateY(-8px)}.art-video-player .hint--bottom:before{margin-top:-11px}.art-video-player .hint--bottom:before,.art-video-player .hint--bottom:after{top:100%;left:50%}.art-video-player .hint--bottom:before{left:calc(50% - 6px)}.art-video-player .hint--bottom:after{-webkit-transform:translateX(-50%);-moz-transform:translateX(-50%);transform:translate(-50%)}.art-video-player .hint--bottom:hover:before{-webkit-transform:translateY(8px);-moz-transform:translateY(8px);transform:translateY(8px)}.art-video-player .hint--bottom:hover:after{-webkit-transform:translateX(-50%) translateY(8px);-moz-transform:translateX(-50%) translateY(8px);transform:translate(-50%) translateY(8px)}.art-video-player .hint--right:before{margin-left:-11px;margin-bottom:-6px}.art-video-player .hint--right:after{margin-bottom:-14px}.art-video-player .hint--right:before,.art-video-player .hint--right:after{left:100%;bottom:50%}.art-video-player .hint--right:hover:before{-webkit-transform:translateX(8px);-moz-transform:translateX(8px);transform:translate(8px)}.art-video-player .hint--right:hover:after{-webkit-transform:translateX(8px);-moz-transform:translateX(8px);transform:translate(8px)}.art-video-player .hint--left:before{margin-right:-11px;margin-bottom:-6px}.art-video-player .hint--left:after{margin-bottom:-14px}.art-video-player .hint--left:before,.art-video-player .hint--left:after{right:100%;bottom:50%}.art-video-player .hint--left:hover:before{-webkit-transform:translateX(-8px);-moz-transform:translateX(-8px);transform:translate(-8px)}.art-video-player .hint--left:hover:after{-webkit-transform:translateX(-8px);-moz-transform:translateX(-8px);transform:translate(-8px)}.art-video-player .hint--top-left:before{margin-bottom:-11px}.art-video-player .hint--top-left:before,.art-video-player .hint--top-left:after{bottom:100%;left:50%}.art-video-player .hint--top-left:before{left:calc(50% - 6px)}.art-video-player .hint--top-left:after{-webkit-transform:translateX(-100%);-moz-transform:translateX(-100%);transform:translate(-100%)}.art-video-player .hint--top-left:after{margin-left:12px}.art-video-player .hint--top-left:hover:before{-webkit-transform:translateY(-8px);-moz-transform:translateY(-8px);transform:translateY(-8px)}.art-video-player .hint--top-left:hover:after{-webkit-transform:translateX(-100%) translateY(-8px);-moz-transform:translateX(-100%) translateY(-8px);transform:translate(-100%) translateY(-8px)}.art-video-player .hint--top-right:before{margin-bottom:-11px}.art-video-player .hint--top-right:before,.art-video-player .hint--top-right:after{bottom:100%;left:50%}.art-video-player .hint--top-right:before{left:calc(50% - 6px)}.art-video-player .hint--top-right:after{-webkit-transform:translateX(0);-moz-transform:translateX(0);transform:translate(0)}.art-video-player .hint--top-right:after{margin-left:-12px}.art-video-player .hint--top-right:hover:before{-webkit-transform:translateY(-8px);-moz-transform:translateY(-8px);transform:translateY(-8px)}.art-video-player .hint--top-right:hover:after{-webkit-transform:translateY(-8px);-moz-transform:translateY(-8px);transform:translateY(-8px)}.art-video-player .hint--bottom-left:before{margin-top:-11px}.art-video-player .hint--bottom-left:before,.art-video-player .hint--bottom-left:after{top:100%;left:50%}.art-video-player .hint--bottom-left:before{left:calc(50% - 6px)}.art-video-player .hint--bottom-left:after{-webkit-transform:translateX(-100%);-moz-transform:translateX(-100%);transform:translate(-100%)}.art-video-player .hint--bottom-left:after{margin-left:12px}.art-video-player .hint--bottom-left:hover:before{-webkit-transform:translateY(8px);-moz-transform:translateY(8px);transform:translateY(8px)}.art-video-player .hint--bottom-left:hover:after{-webkit-transform:translateX(-100%) translateY(8px);-moz-transform:translateX(-100%) translateY(8px);transform:translate(-100%) translateY(8px)}.art-video-player .hint--bottom-right:before{margin-top:-11px}.art-video-player .hint--bottom-right:before,.art-video-player .hint--bottom-right:after{top:100%;left:50%}.art-video-player .hint--bottom-right:before{left:calc(50% - 6px)}.art-video-player .hint--bottom-right:after{-webkit-transform:translateX(0);-moz-transform:translateX(0);transform:translate(0)}.art-video-player .hint--bottom-right:after{margin-left:-12px}.art-video-player .hint--bottom-right:hover:before{-webkit-transform:translateY(8px);-moz-transform:translateY(8px);transform:translateY(8px)}.art-video-player .hint--bottom-right:hover:after{-webkit-transform:translateY(8px);-moz-transform:translateY(8px);transform:translateY(8px)}.art-video-player .hint--small:after,.art-video-player .hint--medium:after,.art-video-player .hint--large:after{white-space:normal;line-height:1.4em;word-wrap:break-word}.art-video-player .hint--small:after{width:80px}.art-video-player .hint--medium:after{width:150px}.art-video-player .hint--large:after{width:300px}.art-video-player [class*=hint--]:after{text-shadow:0 -1px 0px black;box-shadow:4px 4px 8px #0000004d}.art-video-player .hint--error:after{background-color:#b34e4d;text-shadow:0 -1px 0px #592726}.art-video-player .hint--error.hint--top-left:before{border-top-color:#b34e4d}.art-video-player .hint--error.hint--top-right:before{border-top-color:#b34e4d}.art-video-player .hint--error.hint--top:before{border-top-color:#b34e4d}.art-video-player .hint--error.hint--bottom-left:before{border-bottom-color:#b34e4d}.art-video-player .hint--error.hint--bottom-right:before{border-bottom-color:#b34e4d}.art-video-player .hint--error.hint--bottom:before{border-bottom-color:#b34e4d}.art-video-player .hint--error.hint--left:before{border-left-color:#b34e4d}.art-video-player .hint--error.hint--right:before{border-right-color:#b34e4d}.art-video-player .hint--warning:after{background-color:#c09854;text-shadow:0 -1px 0px #6c5328}.art-video-player .hint--warning.hint--top-left:before{border-top-color:#c09854}.art-video-player .hint--warning.hint--top-right:before{border-top-color:#c09854}.art-video-player .hint--warning.hint--top:before{border-top-color:#c09854}.art-video-player .hint--warning.hint--bottom-left:before{border-bottom-color:#c09854}.art-video-player .hint--warning.hint--bottom-right:before{border-bottom-color:#c09854}.art-video-player .hint--warning.hint--bottom:before{border-bottom-color:#c09854}.art-video-player .hint--warning.hint--left:before{border-left-color:#c09854}.art-video-player .hint--warning.hint--right:before{border-right-color:#c09854}.art-video-player .hint--info:after{background-color:#3986ac;text-shadow:0 -1px 0px #1a3c4d}.art-video-player .hint--info.hint--top-left:before{border-top-color:#3986ac}.art-video-player .hint--info.hint--top-right:before{border-top-color:#3986ac}.art-video-player .hint--info.hint--top:before{border-top-color:#3986ac}.art-video-player .hint--info.hint--bottom-left:before{border-bottom-color:#3986ac}.art-video-player .hint--info.hint--bottom-right:before{border-bottom-color:#3986ac}.art-video-player .hint--info.hint--bottom:before{border-bottom-color:#3986ac}.art-video-player .hint--info.hint--left:before{border-left-color:#3986ac}.art-video-player .hint--info.hint--right:before{border-right-color:#3986ac}.art-video-player .hint--success:after{background-color:#458746;text-shadow:0 -1px 0px #1a321a}.art-video-player .hint--success.hint--top-left:before{border-top-color:#458746}.art-video-player .hint--success.hint--top-right:before{border-top-color:#458746}.art-video-player .hint--success.hint--top:before{border-top-color:#458746}.art-video-player .hint--success.hint--bottom-left:before{border-bottom-color:#458746}.art-video-player .hint--success.hint--bottom-right:before{border-bottom-color:#458746}.art-video-player .hint--success.hint--bottom:before{border-bottom-color:#458746}.art-video-player .hint--success.hint--left:before{border-left-color:#458746}.art-video-player .hint--success.hint--right:before{border-right-color:#458746}.art-video-player .hint--always:after,.art-video-player .hint--always:before{opacity:1;visibility:visible}.art-video-player .hint--always.hint--top:before{-webkit-transform:translateY(-8px);-moz-transform:translateY(-8px);transform:translateY(-8px)}.art-video-player .hint--always.hint--top:after{-webkit-transform:translateX(-50%) translateY(-8px);-moz-transform:translateX(-50%) translateY(-8px);transform:translate(-50%) translateY(-8px)}.art-video-player .hint--always.hint--top-left:before{-webkit-transform:translateY(-8px);-moz-transform:translateY(-8px);transform:translateY(-8px)}.art-video-player .hint--always.hint--top-left:after{-webkit-transform:translateX(-100%) translateY(-8px);-moz-transform:translateX(-100%) translateY(-8px);transform:translate(-100%) translateY(-8px)}.art-video-player .hint--always.hint--top-right:before{-webkit-transform:translateY(-8px);-moz-transform:translateY(-8px);transform:translateY(-8px)}.art-video-player .hint--always.hint--top-right:after{-webkit-transform:translateY(-8px);-moz-transform:translateY(-8px);transform:translateY(-8px)}.art-video-player .hint--always.hint--bottom:before{-webkit-transform:translateY(8px);-moz-transform:translateY(8px);transform:translateY(8px)}.art-video-player .hint--always.hint--bottom:after{-webkit-transform:translateX(-50%) translateY(8px);-moz-transform:translateX(-50%) translateY(8px);transform:translate(-50%) translateY(8px)}.art-video-player .hint--always.hint--bottom-left:before{-webkit-transform:translateY(8px);-moz-transform:translateY(8px);transform:translateY(8px)}.art-video-player .hint--always.hint--bottom-left:after{-webkit-transform:translateX(-100%) translateY(8px);-moz-transform:translateX(-100%) translateY(8px);transform:translate(-100%) translateY(8px)}.art-video-player .hint--always.hint--bottom-right:before{-webkit-transform:translateY(8px);-moz-transform:translateY(8px);transform:translateY(8px)}.art-video-player .hint--always.hint--bottom-right:after{-webkit-transform:translateY(8px);-moz-transform:translateY(8px);transform:translateY(8px)}.art-video-player .hint--always.hint--left:before{-webkit-transform:translateX(-8px);-moz-transform:translateX(-8px);transform:translate(-8px)}.art-video-player .hint--always.hint--left:after{-webkit-transform:translateX(-8px);-moz-transform:translateX(-8px);transform:translate(-8px)}.art-video-player .hint--always.hint--right:before{-webkit-transform:translateX(8px);-moz-transform:translateX(8px);transform:translate(8px)}.art-video-player .hint--always.hint--right:after{-webkit-transform:translateX(8px);-moz-transform:translateX(8px);transform:translate(8px)}.art-video-player .hint--rounded:after{border-radius:4px}.art-video-player .hint--no-animate:before,.art-video-player .hint--no-animate:after{-webkit-transition-duration:0ms;-moz-transition-duration:0ms;transition-duration:0ms}.art-video-player .hint--bounce:before,.art-video-player .hint--bounce:after{-webkit-transition:opacity .3s ease,visibility .3s ease,-webkit-transform .3s cubic-bezier(.71,1.7,.77,1.24);-moz-transition:opacity .3s ease,visibility .3s ease,-moz-transform .3s cubic-bezier(.71,1.7,.77,1.24);transition:opacity .3s ease,visibility .3s ease,transform .3s cubic-bezier(.71,1.7,.77,1.24)}.art-video-player .hint--no-shadow:before,.art-video-player .hint--no-shadow:after{text-shadow:initial;box-shadow:initial}.art-video-player .hint--no-arrow:before{display:none}.art-video-player.art-mobile{--art-bottom-gap: 10px;--art-control-height: 38px;--art-control-icon-scale: 1;--art-state-size: 60px;--art-settings-max-height: 180px;--art-selector-max-height: 180px;--art-indicator-scale: 1;--art-control-opacity: 1}.art-video-player.art-mobile .art-controls-left{margin-left:calc(var(--art-padding) / -1)}.art-video-player.art-mobile .art-controls-right{margin-right:calc(var(--art-padding) / -1)}</style></head>
+
+<body>
+    <div id="container" data-art-id="1">
+          <div class="art-video-player art-subtitle-show art-layer-show art-control-show art-backdrop art-hover art-mask-show" style="--art-theme: #ff0057;">
+            <video class="art-video" preload="metadata" playsinline="" src="blob:https://fastcdnv2.com/5f62c98f-bbb9-4103-9a6e-396b9f76f125">
+              <track default="" kind="metadata" src="">
+            </video>
+            <div class="art-poster" style="background-image: url(&quot;https:////hls.fastcdn888.xyz/files/754e325278b45238faf2f87c0b3c53fd/thumbnail.jpg&quot;);"></div>
+            <div class="art-subtitle"></div>
+            <div class="art-danmuku"></div>
+            <div class="art-layers"><div class="art-layer art-layer-p2pStats" data-index="1" style="position: absolute; left: 12px; bottom: 54px; z-index: 60;"><div class="p2p-badge" style="display:none"></div></div><div class="art-layer art-layer-p2pToggle" data-index="2" style="position: absolute; top: 12px; right: 12px; z-index: 60; opacity: 0.45;"><div class="p2p-toggle" title="แสดง/ซ่อน สถานะ P2P"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"></path></svg></div></div></div>
+            <div class="art-mask">
+              <div class="art-state"><i class="art-icon art-icon-state"><svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24">
+<path d="M9.5 9.325v5.35q0 .575.525.875t1.025-.05l4.15-2.65q.475-.3.475-.85t-.475-.85L11.05 8.5q-.5-.35-1.025-.05t-.525.875ZM12 22q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22Z"></path>
+</svg>
+</i><i class="art-icon art-icon-error" style="display: none;"><!--?xml version="1.0" standalone="no"?-->
+
+<svg t="1652850026663" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2749" xmlns:xlink="http://www.w3.org/1999/xlink" width="50" height="50">
+<path d="M593.8176 168.5504l356.00384 595.21024c26.15296 43.74528 10.73152 99.7376-34.44736 125.05088-14.39744 8.06912-30.72 12.30848-47.37024 12.30848H155.97568C103.75168 901.12 61.44 860.16 61.44 809.61536c0-16.09728 4.38272-31.92832 12.71808-45.8752L430.16192 168.5504c26.17344-43.7248 84.00896-58.65472 129.20832-33.34144a93.0816 93.0816 0 0 1 34.44736 33.34144zM512 819.2a61.44 61.44 0 1 0 0-122.88 61.44 61.44 0 0 0 0 122.88z m0-512a72.31488 72.31488 0 0 0-71.76192 81.3056l25.72288 205.7216a46.40768 46.40768 0 0 0 92.07808 0l25.72288-205.74208A72.31488 72.31488 0 0 0 512 307.2z" p-id="2750">
+</path>
+</svg></i></div>
+            </div>
+            <div class="art-bottom">
+              <div class="art-progress"><div class="art-control art-control-progress" data-index="10">
+                <div class="art-control-progress-inner">
+                    <div class="art-progress-hover"></div>
+                    <div class="art-progress-loaded" style="width: 0.127239%;"></div>
+                    <div class="art-progress-played"></div>
+                    <div class="art-progress-highlight"></div>
+                    <div class="art-progress-indicator" style="background-color: var(--art-theme);"></div>
+                    <div class="art-progress-tip">00:00</div>
+                </div>
+            </div><div class="art-control art-control-thumbnails" data-index="20"></div></div>
+              <div class="art-controls">
+                <div class="art-controls-left"><div class="art-control art-control-playAndPause" data-index="10"><i class="art-icon art-icon-play hint--rounded hint--top" aria-label="Play" style="display: flex;"><svg xmlns="http://www.w3.org/2000/svg" height="22" width="22" viewBox="0 0 22 22">
+  <path d="M17.982 9.275L8.06 3.27A2.013 2.013 0 0 0 5 4.994v12.011a2.017 2.017 0 0 0 3.06 1.725l9.922-6.005a2.017 2.017 0 0 0 0-3.45z"></path>
+</svg></i><i class="art-icon art-icon-pause hint--rounded hint--top" aria-label="Pause" style="display: none;"><svg xmlns="http://www.w3.org/2000/svg" height="22" width="22" viewBox="0 0 22 22">
+    <path d="M7 3a2 2 0 0 0-2 2v12a2 2 0 1 0 4 0V5a2 2 0 0 0-2-2zM15 3a2 2 0 0 0-2 2v12a2 2 0 1 0 4 0V5a2 2 0 0 0-2-2z"></path>
+</svg></i></div><div class="art-control art-control-volume" data-index="20"><i class="art-icon art-icon-volume" style="display: flex;"><svg xmlns="http://www.w3.org/2000/svg" height="22" width="22" viewBox="0 0 22 22">
+    <path d="M10.188 4.65L6 8H5a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1l4.188 3.35a.5.5 0 0 0 .812-.39V5.04a.498.498 0 0 0-.812-.39zM14.446 3.778a1 1 0 0 0-.862 1.804 6.002 6.002 0 0 1-.007 10.838 1 1 0 0 0 .86 1.806A8.001 8.001 0 0 0 19 11a8.001 8.001 0 0 0-4.554-7.222z"></path>
+    <path d="M15 11a3.998 3.998 0 0 0-2-3.465v6.93A3.998 3.998 0 0 0 15 11z"></path>
+</svg></i><i class="art-icon art-icon-volumeClose" style="display: none;"><svg xmlns="http://www.w3.org/2000/svg" height="22" width="22" viewBox="0 0 22 22">
+    <path d="M15 11a3.998 3.998 0 0 0-2-3.465v2.636l1.865 1.865A4.02 4.02 0 0 0 15 11z"></path>
+    <path d="M13.583 5.583A5.998 5.998 0 0 1 17 11a6 6 0 0 1-.585 2.587l1.477 1.477a8.001 8.001 0 0 0-3.446-11.286 1 1 0 0 0-.863 1.805zM18.778 18.778l-2.121-2.121-1.414-1.414-1.415-1.415L13 13l-2-2-3.889-3.889-3.889-3.889a.999.999 0 1 0-1.414 1.414L5.172 8H5a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1l4.188 3.35a.5.5 0 0 0 .812-.39v-3.131l2.587 2.587-.01.005a1 1 0 0 0 .86 1.806c.215-.102.424-.214.627-.333l2.3 2.3a1.001 1.001 0 0 0 1.414-1.416zM11 5.04a.5.5 0 0 0-.813-.39L8.682 5.854 11 8.172V5.04z"></path>
+</svg></i><div class="art-volume-panel"><div class="art-volume-inner"><div class="art-volume-val">70</div><div class="art-volume-slider"><div class="art-volume-handle"><div class="art-volume-loaded" style="top: 30%;"></div></div><div class="art-volume-indicator" style="top: 30%;"></div></div></div></div></div><div class="art-control art-control-time" data-index="30" style="cursor: auto; padding: 0px 10px;">00:00 / 01:44:47</div></div>
+                <div class="art-controls-center"></div>
+                <div class="art-controls-right"><div class="art-control art-control-hls-quality art-control-selector" data-index="8" style="padding: 0px 10px;"><div class="art-selector-value">360P</div><div class="art-selector-list"><div class="art-selector-item" data-index="0" data-value="1">720P</div><div class="art-selector-item art-current" data-index="1" data-value="0">360P</div><div class="art-selector-item" data-index="2" data-value="-1">Auto</div></div></div><div class="art-control art-control-chromecast hint--rounded hint--top" data-index="10" aria-label="Cast to TV"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M21 3H3c-1.1 0-2 .9-2 2v3h2V5h18v14h-7v2h7c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM1 18v3h3c0-1.66-1.34-3-3-3zm0-4v2c2.76 0 5 2.24 5 5h2c0-3.87-3.13-7-7-7zm0-4v2c4.97 0 9 4.03 9 9h2c0-6.08-4.93-11-11-11z"></path></svg></div><div class="art-control art-control-fullscreen hint--rounded hint--top" data-index="70" aria-label="Fullscreen"><i class="art-icon art-icon-fullscreenOn"><!--?xml version="1.0" standalone="no"?-->
+
+<svg class="icon" width="22" height="22" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+<path d="M625.777778 256h142.222222V398.222222h113.777778V142.222222H625.777778v113.777778zM256 398.222222V256H398.222222v-113.777778H142.222222V398.222222h113.777778zM768 625.777778v142.222222H625.777778v113.777778h256V625.777778h-113.777778zM398.222222 768H256V625.777778h-113.777778v256H398.222222v-113.777778z"></path>
+</svg>
+</i><i class="art-icon art-icon-fullscreenOff" style="display: none;"><!--?xml version="1.0" standalone="no"?-->
+
+<svg class="icon" width="22" height="22" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+<path d="M768 298.666667h170.666667v85.333333h-256V128h85.333333v170.666667zM341.333333 384H85.333333V298.666667h170.666667V128h85.333333v256z m426.666667 341.333333v170.666667h-85.333333v-256h256v85.333333h-170.666667zM341.333333 640v256H256v-170.666667H85.333333v-85.333333h256z"></path>
+</svg>
+</i></div></div>
+              </div>
+            </div>
+            <div class="art-loading"><i class="art-icon art-icon-loading"><svg xmlns="http://www.w3.org/2000/svg" width="50px" height="50px" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid" class="uil-default">
+  <rect x="0" y="0" width="100" height="100" fill="none" class="bk"></rect>
+  <rect x="47" y="40" width="6" height="20" rx="5" ry="5" transform="rotate(0 50 50) translate(0 -30)">
+    <animate attributeName="opacity" from="1" to="0" dur="1s" begin="-1s" repeatCount="indefinite"></animate>
+  </rect>
+  <rect x="47" y="40" width="6" height="20" rx="5" ry="5" transform="rotate(30 50 50) translate(0 -30)">
+    <animate attributeName="opacity" from="1" to="0" dur="1s" begin="-0.9166666666666666s" repeatCount="indefinite"></animate>
+  </rect>
+  <rect x="47" y="40" width="6" height="20" rx="5" ry="5" transform="rotate(60 50 50) translate(0 -30)">
+    <animate attributeName="opacity" from="1" to="0" dur="1s" begin="-0.8333333333333334s" repeatCount="indefinite"></animate>
+  </rect>
+  <rect x="47" y="40" width="6" height="20" rx="5" ry="5" transform="rotate(90 50 50) translate(0 -30)">
+    <animate attributeName="opacity" from="1" to="0" dur="1s" begin="-0.75s" repeatCount="indefinite"></animate></rect>
+  <rect x="47" y="40" width="6" height="20" rx="5" ry="5" transform="rotate(120 50 50) translate(0 -30)">
+    <animate attributeName="opacity" from="1" to="0" dur="1s" begin="-0.6666666666666666s" repeatCount="indefinite"></animate>
+  </rect>
+  <rect x="47" y="40" width="6" height="20" rx="5" ry="5" transform="rotate(150 50 50) translate(0 -30)">
+    <animate attributeName="opacity" from="1" to="0" dur="1s" begin="-0.5833333333333334s" repeatCount="indefinite"></animate>
+  </rect>
+  <rect x="47" y="40" width="6" height="20" rx="5" ry="5" transform="rotate(180 50 50) translate(0 -30)">
+    <animate attributeName="opacity" from="1" to="0" dur="1s" begin="-0.5s" repeatCount="indefinite"></animate></rect>
+  <rect x="47" y="40" width="6" height="20" rx="5" ry="5" transform="rotate(210 50 50) translate(0 -30)">
+    <animate attributeName="opacity" from="1" to="0" dur="1s" begin="-0.4166666666666667s" repeatCount="indefinite"></animate>
+  </rect>
+  <rect x="47" y="40" width="6" height="20" rx="5" ry="5" transform="rotate(240 50 50) translate(0 -30)">
+    <animate attributeName="opacity" from="1" to="0" dur="1s" begin="-0.3333333333333333s" repeatCount="indefinite"></animate>
+  </rect>
+  <rect x="47" y="40" width="6" height="20" rx="5" ry="5" transform="rotate(270 50 50) translate(0 -30)">
+    <animate attributeName="opacity" from="1" to="0" dur="1s" begin="-0.25s" repeatCount="indefinite"></animate></rect>
+  <rect x="47" y="40" width="6" height="20" rx="5" ry="5" transform="rotate(300 50 50) translate(0 -30)">
+    <animate attributeName="opacity" from="1" to="0" dur="1s" begin="-0.16666666666666666s" repeatCount="indefinite"></animate>
+  </rect>
+  <rect x="47" y="40" width="6" height="20" rx="5" ry="5" transform="rotate(330 50 50) translate(0 -30)">
+    <animate attributeName="opacity" from="1" to="0" dur="1s" begin="-0.08333333333333333s" repeatCount="indefinite"></animate>
+  </rect>
+</svg></i></div>
+            <div class="art-notice">
+              <div class="art-notice-inner"></div>
+            </div>
+            <div class="art-settings"></div>
+            <div class="art-info">
+              <div class="art-info-panel">
+                <div class="art-info-item">
+                  <div class="art-info-title">Player version:</div>
+                  <div class="art-info-content">5.4.0</div>
+                </div>
+                <div class="art-info-item">
+                  <div class="art-info-title">Video url:</div>
+                  <div class="art-info-content" data-video="currentSrc">blob:https://fastcdnv2.com/5f62c98f-bbb9-4103-9a6e-396b9f76f125</div>
+                </div>
+                <div class="art-info-item">
+                  <div class="art-info-title">Video volume:</div>
+                  <div class="art-info-content" data-video="volume">0.70</div>
+                </div>
+                <div class="art-info-item">
+                  <div class="art-info-title">Video time:</div>
+                  <div class="art-info-content" data-video="currentTime">0.00</div>
+                </div>
+                <div class="art-info-item">
+                  <div class="art-info-title">Video duration:</div>
+                  <div class="art-info-content" data-video="duration">6287.38</div>
+                </div>
+                <div class="art-info-item">
+                  <div class="art-info-title">Video resolution:</div>
+                  <div class="art-info-content">
+                    <span data-video="videoWidth">640.00</span> x <span data-video="videoHeight">360.00</span>
+                  </div>
+                </div>
+              </div>
+              <div class="art-info-close">[x]</div>
+            </div>
+            <div class="art-contextmenus"><div class="art-contextmenu art-contextmenu-info" data-index="40">Video Info</div><div class="art-contextmenu art-contextmenu-version" data-index="50"><a href="https://artplayer.org/?ref=https%3A%2F%2Ffastcdnv2.com%2Fembed%2F754e325278b45238faf2f87c0b3c53fd" target="_blank" style="width:100%;">ArtPlayer 5.4.0</a></div><div class="art-contextmenu art-contextmenu-close" data-index="60">Close</div></div>
+          </div>
+        </div>
+    <div id="ad-overlay">
+        <video id="ad-video" playsinline=""></video>
+        <span id="ad-badge">Ad</span>
+        <button id="ad-skip" disabled="">Skip</button>
+    </div>
+    <script>
+        // Flatten domain ads into a simple pre-roll queue.
+        function buildAdQueue(list) {
+            const queue = [];
+            (Array.isArray(list) ? list : []).forEach((ad) => {
+                (ad.sources || []).forEach((s) => {
+                    if (s && s.file) {
+                        queue.push({
+                            file: s.file,
+                            skiptime: parseInt(s.skiptime, 10) || 0,
+                            clickUrl: s.clickUrl || ad.clickUrl || ''
+                        });
+                    }
+                });
+            });
+            return queue;
+        }
+
+        // Play pre-roll ads sequentially, then resolve to start main content.
+        function playPreroll(queue) {
+            return new Promise((resolve) => {
+                if (!queue.length) return resolve();
+                const overlay = document.getElementById('ad-overlay');
+                const adVideo = document.getElementById('ad-video');
+                const skipBtn = document.getElementById('ad-skip');
+                let idx = 0;
+                let timer = null;
+
+                function finish() {
+                    if (timer) clearInterval(timer);
+                    overlay.style.display = 'none';
+                    try { adVideo.pause(); } catch (e) { }
+                    resolve();
+                }
+
+                function playNext() {
+                    if (idx >= queue.length) return finish();
+                    const ad = queue[idx++];
+                    let remaining = ad.skiptime;
+
+                    skipBtn.disabled = remaining > 0;
+                    skipBtn.textContent = remaining > 0 ? ('Skip in ' + remaining) : 'Skip';
+                    if (timer) clearInterval(timer);
+                    if (remaining > 0) {
+                        timer = setInterval(() => {
+                            remaining -= 1;
+                            if (remaining <= 0) {
+                                clearInterval(timer);
+                                skipBtn.disabled = false;
+                                skipBtn.textContent = 'Skip';
+                            } else {
+                                skipBtn.textContent = 'Skip in ' + remaining;
+                            }
+                        }, 1000);
+                    }
+
+                    adVideo.src = ad.file;
+                    adVideo.onclick = () => { if (ad.clickUrl) window.open(ad.clickUrl, '_blank'); };
+                    adVideo.onended = () => { playNext(); };
+                    adVideo.onerror = () => { playNext(); };
+                    adVideo.play().catch(() => playNext());
+                }
+
+                skipBtn.onclick = () => { if (!skipBtn.disabled) playNext(); };
+                overlay.style.display = 'block';
+                playNext();
+            });
+        }
+
+        // --- P2P live stats (updated from p2p-media-loader engine events) ---
+        const p2pStats = { peers: 0, httpKB: 0, p2pDownKB: 0, p2pUpKB: 0, active: false, fsHidden: false, userHidden: true };
+        function fmtMB(kb) { return (kb / 1024).toFixed(1) + ' MB'; }
+        function renderP2PStats() {
+            const el = document.querySelector('.p2p-badge');
+            if (!el) return;
+            // Hide in fullscreen, or when the user toggled it off via the button.
+            if (p2pStats.fsHidden || p2pStats.userHidden) { el.style.display = 'none'; return; }
+            const totalDown = p2pStats.p2pDownKB + p2pStats.httpKB;
+            const ratio = totalDown > 0 ? Math.round((p2pStats.p2pDownKB / totalDown) * 100) : 0;
+            el.style.display = 'block';
+            el.innerHTML =
+                '<span class="p2p-dot">●</span> P2P · ' + p2pStats.peers + ' peers'
+                + ' · ดาวน์โหลด P2P ' + fmtMB(p2pStats.p2pDownKB) + ' (' + ratio + '%)'
+                + ' · HTTP ' + fmtMB(p2pStats.httpKB)
+                + ' · อัปโหลด ' + fmtMB(p2pStats.p2pUpKB);
+        }
+        // Wire engine events + add an on-player status layer.
+        function attachP2PStats(engine) {
+            try {
+                p2pStats.active = true;
+                const Events = window.p2pml && window.p2pml.core && window.p2pml.core.Events;
+                if (!Events) return;
+                if (window.player && window.player.layers && !document.querySelector('.p2p-badge')) {
+                    window.player.layers.add({
+                        name: 'p2pStats',
+                        html: '<div class="p2p-badge" style="display:none"></div>',
+                        style: { position: 'absolute', left: '12px', bottom: '54px', zIndex: '60' },
+                    });
+                }
+                // Hide the badge whenever the player enters fullscreen (native or web).
+                if (window.player) {
+                    p2pStats.fsHidden = !!(window.player.fullscreen || window.player.fullscreenWeb);
+                    window.player.on('fullscreen', (state) => { p2pStats.fsHidden = state || window.player.fullscreenWeb; renderP2PStats(); });
+                    window.player.on('fullscreenWeb', (state) => { p2pStats.fsHidden = state || window.player.fullscreen; renderP2PStats(); });
+                }
+                // Toggle button to show/hide the P2P status badge on demand.
+                // Sits in the top-right corner as its own layer (not in the control
+                // bar), so it stays put and doesn't move with the controls.
+                if (window.player && window.player.layers && !document.querySelector('.p2p-toggle')) {
+                    window.player.layers.add({
+                        name: 'p2pToggle',
+                        html: '<div class="p2p-toggle" title="แสดง/ซ่อน สถานะ P2P"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg></div>',
+                        style: { position: 'absolute', top: '12px', right: '12px', zIndex: '60' },
+                        mounted: function ($el) { $el.style.opacity = p2pStats.userHidden ? '0.45' : '1'; },
+                        click: function () {
+                            p2pStats.userHidden = !p2pStats.userHidden;
+                            const btn = document.querySelector('.art-layer-p2pToggle');
+                            if (btn) btn.style.opacity = p2pStats.userHidden ? '0.45' : '1';
+                            renderP2PStats();
+                        },
+                    });
+                }
+                // .art-layers starts hidden until the layer group is switched on.
+                if (window.player && window.player.layers) window.player.layers.show = true;
+                engine.on(Events.PeerConnect, () => { p2pStats.peers++; renderP2PStats(); });
+                engine.on(Events.PeerClose, () => { p2pStats.peers = Math.max(0, p2pStats.peers - 1); renderP2PStats(); });
+                engine.on(Events.PieceBytesDownloaded, (method, bytes) => {
+                    if (method === 'p2p') p2pStats.p2pDownKB += bytes / 1024;
+                    else p2pStats.httpKB += bytes / 1024;
+                    renderP2PStats();
+                });
+                engine.on(Events.PieceBytesUploaded, (method, bytes) => {
+                    p2pStats.p2pUpKB += bytes / 1024;
+                    renderP2PStats();
+                });
+                renderP2PStats();
+            } catch (e) { /* stats are best-effort; never break playback */ }
+        }
+
+        // Cast the m3u8 to a Chromecast device via the default media receiver.
+        function startCast() {
+            if (!window.__castReady || typeof cast === 'undefined' || typeof chrome === 'undefined' || !chrome.cast) {
+                if (window.player) window.player.notice.show = 'Chromecast ใช้ได้บน Chrome / Android เท่านั้น';
+                return;
+            }
+            try {
+                const context = cast.framework.CastContext.getInstance();
+                context.requestSession().then(function () {
+                    const session = context.getCurrentSession();
+                    if (!session) return;
+                    const mediaInfo = new chrome.cast.media.MediaInfo(url, 'application/x-mpegURL');
+                    mediaInfo.metadata = new chrome.cast.media.GenericMediaMetadata();
+                    mediaInfo.metadata.title = castTitle;
+                    if (poster) { mediaInfo.metadata.images = [new chrome.cast.Image(poster)]; }
+                    const request = new chrome.cast.media.LoadRequest(mediaInfo);
+                    session.loadMedia(request).then(
+                        function () { if (window.player) window.player.notice.show = 'กำลังส่งไปยังทีวี…'; },
+                        function (err) { if (window.player) window.player.notice.show = 'Cast ไม่สำเร็จ'; }
+                    );
+                }).catch(function () { /* user dismissed device picker */ });
+            } catch (e) { /* ignore */ }
+        }
+
+        // --- iOS / native-HLS manual quality selector (JWPlayer-style) ---
+        // On iOS hls.js isn't supported, so the hls-control plugin can't list
+        // qualities. We read the quality list from the server and switch by
+        // swapping video.src to a single-resolution playlist, reseeking to keep
+        // position. "Auto" returns to the master playlist (native ABR).
+        let qualityLevels = [];
+        try { qualityLevels = ["360","720"]; } catch (e) { qualityLevels = []; }
+        if (!Array.isArray(qualityLevels)) qualityLevels = [];
+
+        function qualityUrlFor(res) {
+            // master: .../hlsX/{md5}/master(.m3u8)  ->  media: .../filesX/{md5}/{res}/index
+            return url.replace(/\/hls([a-z0-9]*)\/([^/]+)\/master(\.m3u8)?(\?.*)?$/i, '/files$1/$2/' + res + '/index');
+        }
+
+        function switchNativeQuality(res) {
+            const v = window.player && window.player.video;
+            if (!v) return;
+            const t = v.currentTime || 0;
+            const playing = !v.paused;
+            v.src = res ? qualityUrlFor(res) : url;
+            v.load();
+            const onMeta = () => {
+                try { v.currentTime = t; } catch (e) { }
+                if (playing) { v.play().catch(() => { }); }
+                v.removeEventListener('loadedmetadata', onMeta);
+            };
+            v.addEventListener('loadedmetadata', onMeta);
+        }
+
+        function addNativeQualityControl() {
+            try {
+                if (!window.player || !window.player.controls) return;
+                if (qualityLevels.length < 2) return;                       // nothing to switch
+                if (document.querySelector('.art-control-nativeQuality')) return;
+                const selector = [{ html: 'Auto', value: '', default: true }];
+                qualityLevels.slice().sort((a, b) => Number(b) - Number(a)).forEach((q) => {
+                    selector.push({ html: q + 'P', value: String(q) });
+                });
+                window.player.controls.add({
+                    name: 'nativeQuality',
+                    position: 'right',
+                    index: 9,
+                    html: 'Auto',
+                    selector: selector,
+                    onSelect: function (item) {
+                        switchNativeQuality(item.value);
+                        return item.html;
+                    },
+                });
+            } catch (e) { /* best-effort; never break playback */ }
+        }
+
+        document.addEventListener("DOMContentLoaded", (event) => {
+            playPreroll(buildAdQueue(adList)).then(() => {
+                window.player = new Artplayer({
+                    container: '#container',
+                    url: url,
+                    poster: poster,
+                    autoplay: false,
+                    autoSize: false,
+                    loop: false,
+                    mutex: true,
+                    setting: false,
+                    pip: false,
+                    flip: false,
+                    lock: true,
+                    fastForward: true,
+                    playbackRate: false,
+                    aspectRatio: false,
+                    theme: '#ff0057',
+                    fullscreen: true,
+                    fullscreenWeb: false,
+                    miniProgressBar: false,
+                    autoOrientation: true,
+                    airplay: false, // Enable Airplay for iOS
+                    whitelist: ['*'],
+                    customType: {
+                        m3u8: function (video, url) {
+                            // Decide whether to run the P2P path: enabled + libs loaded +
+                            // WebRTC supported + desktop (P2P off on mobile by design).
+                            const canP2P = P2P_ENABLED
+                                && window.__p2pHls
+                                && window.p2pml && window.p2pml.core && window.p2pml.hlsjs
+                                && window.p2pml.core.HybridLoader.isSupported()
+                                && !isMobileDevice();
+
+                            const HlsCtor = canP2P ? window.__p2pHls : window.Hls;
+
+                            if (!HlsCtor || !HlsCtor.isSupported()) {
+                                if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                                    video.src = url;
+                                    // iOS native HLS: add a manual quality menu (hls.js plugin can't).
+                                    addNativeQualityControl();
+                                } else {
+                                    window.player.notice.show = 'Unsupported playback format: m3u8';
+                                }
+                                return;
+                            }
+
+                            if (window.player.hls) window.player.hls.destroy();
+                            if (window.player.p2pEngine) { try { window.player.p2pEngine.destroy(); } catch (e) { } }
+
+                            let hlsConfig = {};
+                            let engine = null;
+
+                            if (canP2P) {
+                                engine = new window.p2pml.hlsjs.Engine({
+                                    segments: { forwardSegmentCount: 30 },
+                                    loader: {
+                                        cachedSegmentExpiration: 86400000,
+                                        cachedSegmentsCount: 1000,
+                                        requiredSegmentsPriority: 1,
+                                        httpDownloadProbability: 0.5,
+                                        httpDownloadProbabilitySkipIfNoPeers: true,
+                                        p2pDownloadMaxPriority: 20,
+                                        simultaneousP2PDownloads: 10,
+                                        trackerAnnounce: P2P_TRACKERS.length ? P2P_TRACKERS : ["wss://tracker.fastfastcdn.com"],
+                                        rtcConfig: { iceServers: P2P_STUN.length ? P2P_STUN : [{ urls: "stun:stun.l.google.com:19302" }] },
+                                    },
+                                });
+
+                                // Wrap the p2pml loader so the 545-byte fake-PNG header is
+                                // stripped from .webp media segments after they are fetched
+                                // (via P2P or HTTP) and before hls.js demuxes them.
+                                const BaseLoader = engine.createLoaderClass();
+                                class P2PDeobfLoader extends BaseLoader {
+                                    load(context, config, callbacks) {
+                                        const onSuccess = callbacks.onSuccess;
+                                        callbacks.onSuccess = function (response, stats, ctx, networkDetails) {
+                                            try {
+                                                const u = (ctx && ctx.url) || (context && context.url) || '';
+                                                if (response && response.data && /\.webp(\?|$)/i.test(u)
+                                                    && response.data.byteLength > P2P_HEADER_BYTES) {
+                                                    response.data = response.data.slice(P2P_HEADER_BYTES);
+                                                }
+                                            } catch (e) { }
+                                            onSuccess(response, stats, ctx, networkDetails);
+                                        };
+                                        super.load(context, config, callbacks);
+                                    }
+                                }
+                                hlsConfig.loader = P2PDeobfLoader;
+                                hlsConfig.liveSyncDurationCount = 7;
+                            }
+
+                            const hls = new HlsCtor(hlsConfig);
+                            if (engine) {
+                                window.p2pml.hlsjs.initHlsJsPlayer(hls);
+                                window.player.p2pEngine = engine;
+                                attachP2PStats(engine);
+                            }
+                            hls.loadSource(url);
+                            hls.attachMedia(video);
+                            window.player.hls = hls;
+                            window.player.on('destroy', () => {
+                                try { hls.destroy(); } catch (e) { }
+                                if (engine) { try { engine.destroy(); } catch (e) { } }
+                            });
+                        },
+                    },
+                    controls: [
+                        {
+                            name: 'chromecast',
+                            position: 'right',
+                            index: 10,
+                            tooltip: 'Cast to TV',
+                            html: '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M21 3H3c-1.1 0-2 .9-2 2v3h2V5h18v14h-7v2h7c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM1 18v3h3c0-1.66-1.34-3-3-3zm0-4v2c2.76 0 5 2.24 5 5h2c0-3.87-3.13-7-7-7zm0-4v2c4.97 0 9 4.03 9 9h2c0-6.08-4.93-11-11-11z"/></svg>',
+                            click: function () { startCast(); },
+                        },
+                    ],
+                    plugins: [
+                        artplayerPluginHlsControl({
+                            quality: {
+                                control: true,
+                                getName: (level) => level.height + 'P',
+                                title: 'Quality',
+                                auto: 'Auto',
+                            },
+
+                        })
+                    ]
+                });
+                // Auto-resume disabled: playback always starts from the beginning
+                // on reload / revisit (no progress saved or restored).
+            }); // end playPreroll().then
+        });
+    </script>
+    <script src="./C6C4PnrwdA8u.js.ดาวน์โหลด"></script>
+    <script src="./artplayer.js.ดาวน์โหลด"></script>
+<script type="module" src="./vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon="{&quot;version&quot;:&quot;2024.11.0&quot;,&quot;token&quot;:&quot;4ad3678e7aeb4ccebef9687e01630c5b&quot;,&quot;r&quot;:1,&quot;spa&quot;:2}" crossorigin="anonymous"></script>
+
+
+</body></html>

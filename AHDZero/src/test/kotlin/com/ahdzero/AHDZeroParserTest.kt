@@ -6,7 +6,7 @@ import org.junit.Test
 import java.io.File
 
 class AHDZeroParserTest {
-    private fun fixture(name: String) = File("../samples/ahdzero.com/$name.html").readText().let { html ->
+    private fun fixture(name: String) = File("../samples/regression/ahdzero.com/$name.html").readText().let { html ->
         val canonical = Jsoup.parse(html).selectFirst("link[rel=canonical]")!!.attr("href")
         Jsoup.parse(html, canonical)
     }
