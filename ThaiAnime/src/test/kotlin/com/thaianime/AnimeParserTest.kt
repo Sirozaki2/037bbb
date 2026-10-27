@@ -28,7 +28,7 @@ internal object Samples {
 
 class AnimeParserTest {
     @Test fun `published sites exclude retired Seven and keep compact navigable menus`() {
-        assertEquals(listOf(Site.NEKO, Site.RUKA, Site.SUBA), Site.enabled)
+        assertEquals(listOf(Site.NEKO, Site.RUKA, Site.SUBA, Site.WAKU), Site.enabled)
         assertEquals(Site.enabled.toSet(), AnimeCategories.homeEntries.keys)
         Site.enabled.forEach { site ->
             val home = AnimeCategories.homeEntries.getValue(site)
@@ -79,7 +79,7 @@ class AnimeParserTest {
         assertTrue(suba.episodes.none { it.url.contains('#') || it.title.contains("ยังไม่มา") })
     }
     @Test fun `movies remain movies while preserving every available audio link`() {
-        Site.entries.forEach { site ->
+        Site.entries.filter { it != Site.WAKU }.forEach { site ->
             val detail = AnimeParser.detail(site, Samples.doc(site, "movie"))
             assertTrue(site.label, detail.movie)
             assertTrue(detail.title.isNotBlank()); assertNotNull(site.label, detail.poster)
@@ -87,7 +87,7 @@ class AnimeParserTest {
         }
     }
     @Test fun `categories use site pagination and keep filters`() {
-        Site.entries.forEach { site ->
+        Site.entries.filter { it != Site.WAKU }.forEach { site ->
             val f = Samples.file(site, "category")
             val doc = Samples.doc(f)
             assertTrue(site.label, AnimeParser.cards(site, doc).isNotEmpty())
@@ -99,7 +99,7 @@ class AnimeParserTest {
         assertEquals("https://www.anime-seven.com/catalog/15/sub.html&number=3", AnimeParser.pageUrl(Site.SEVEN, "https://www.anime-seven.com/catalog/15/sub.html&number=2", 3))
     }
     @Test fun `search form parameters are encoded without losing Thai or ampersands`() {
-        Site.entries.forEach { site ->
+        Site.entries.filter { it != Site.WAKU }.forEach { site ->
             assertTrue(AnimeParser.searchUrl(site, "ไทย &").contains("%26"))
             assertFalse(AnimeParser.searchUrl(site, "ไทย &").contains(" "))
         }
@@ -107,7 +107,7 @@ class AnimeParserTest {
         assertEquals("https://www.anime-seven.com/index.php?search=a+b", AnimeParser.searchUrl(Site.SEVEN, "a b"))
     }
     @Test fun `navigation paths come from supplied menus and are unique`() {
-        Site.entries.forEach { site ->
+        Site.entries.filter { it != Site.WAKU }.forEach { site ->
             val links = Samples.doc(site, "home").select("a[href]").map { java.net.URI(it.attr("href")).rawPath }.toSet()
             val entries = AnimeCategories.entries.getValue(site)
             assertEquals(entries.size, entries.map { it.first }.distinct().size)

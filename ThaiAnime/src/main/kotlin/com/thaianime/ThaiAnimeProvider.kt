@@ -117,7 +117,9 @@ internal class ThaiAnimeProvider(private val site: Site) : MainAPI() {
                 return
             }
             AnimePlayer.sources(site, doc).forEach { resolve(it, url, 0) }
-            AnimePlayer.options(doc).forEach { option ->
+            // Waku already renders its primary iframe; request REST only if it yielded no links.
+            val options = if (site == Site.WAKU && emitted.isNotEmpty()) emptyList() else AnimePlayer.options(doc)
+            options.forEach { option ->
                 try {
                     val response = app.get(option.url, referer = url, interceptor = cloudflare, cacheTime = 0)
                     if (response.code == 200) AnimePlayer.ajaxEmbed(response.text, url)?.let { resolve(PlayerSource(it, option.label), url, 0) }
