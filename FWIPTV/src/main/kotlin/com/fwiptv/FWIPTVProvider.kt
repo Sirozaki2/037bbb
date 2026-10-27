@@ -7,6 +7,7 @@ import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
 import com.lagradost.cloudstream3.plugins.Plugin
 import com.lagradost.cloudstream3.utils.*
 import java.net.URLEncoder
+import kotlin.coroutines.cancellation.CancellationException
 
 @CloudstreamPlugin
 class FWIPTVPlugin : Plugin() {
@@ -49,11 +50,17 @@ class FWIPTVProvider : MainAPI() {
         }
     }
     override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
-        val embed = FWIPParser.embed(document(data, fresh = true)) ?: return false
+        val embed = FWIPParser.embed(document(data, fresh = true))
+            ?: throw ErrorLoadingException("FWIP TV ไม่พบตัวเล่นของเรื่องนี้")
         var found = false
-        // The site's player123up host is blocked in the sandbox. Delegate only to registered
-        // Cloudstream extractors; never return an embed HTML page or a preroll ad as a video.
-        loadExtractor(embed, data, subtitleCallback) { found = true; callback(it) }
-        return found
+        // Registered extractors own host-specific playback. Never emit the embed HTML as video.
+        try {
+            loadExtractor(embed, data, subtitleCallback) { found = true; callback(it) }
+        } catch (error: Exception) {
+            if (error is CancellationException) throw error
+            if (!found) throw ErrorLoadingException("FWIP TV โหลดโฮสต์วิดีโอไม่ได้ ลองเปิดเรื่องนี้ในเว็บเพื่อตรวจสอบตัวเล่น")
+        }
+        if (!found) throw ErrorLoadingException("FWIP TV ยังไม่มีตัวอ่านที่เล่นโฮสต์วิดีโอนี้ได้ (${java.net.URI(embed).host})")
+        return true
     }
 }
