@@ -13,8 +13,8 @@ buildscript {
 
     dependencies {
         classpath("com.android.tools.build:gradle:8.13.2")
-        // Cloudstream gradle plugin which makes everything work and builds plugins
-        classpath("com.github.recloudstream:gradle:-SNAPSHOT")
+        // Pin the published Cloudstream plugin commit; avoid the moving -SNAPSHOT alias.
+        classpath("com.github.recloudstream:gradle:32895aedb636")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.4.0")
     }
 }
