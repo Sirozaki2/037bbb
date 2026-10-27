@@ -7,6 +7,8 @@ import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
 import com.lagradost.cloudstream3.plugins.Plugin
 import com.lagradost.cloudstream3.utils.*
 import java.net.URLEncoder
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlin.coroutines.cancellation.CancellationException
 
 @CloudstreamPlugin
@@ -21,8 +23,8 @@ class Movie2FreeHDProvider : MainAPI() {
     override val hasMainPage = true
     override val hasDownloadSupport = true
     override val supportedTypes = setOf(TvType.Movie, TvType.TvSeries)
-    override var sequentialMainPage = true
-    override var sequentialMainPageDelay = 100L
+    override var sequentialMainPage = false
+    private val listingRequests = Semaphore(3)
     override val mainPage = SiteCategories.entries.map { (path, title) -> mainPage(mainUrl + path, title) }
     private val cloudflare by lazy { CloudflareKiller() }
 
@@ -36,9 +38,9 @@ class Movie2FreeHDProvider : MainAPI() {
     } else {
         newMovieSearchResponse(title, url, TvType.Movie) { posterUrl = poster; posterHeaders = mapOf("Referer" to "$mainUrl/") }
     }
-    override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
+    override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse = listingRequests.withPermit {
         val doc = document(Movie2FreeHDParser.pageUrl(request.data, page))
-        return newHomePageResponse(listOf(HomePageList(request.name, Movie2FreeHDParser.cards(doc).map { it.response() })), Movie2FreeHDParser.hasNext(doc))
+        newHomePageResponse(listOf(HomePageList(request.name, Movie2FreeHDParser.cards(doc).map { it.response() })), Movie2FreeHDParser.hasNext(doc))
     }
     override suspend fun search(query: String): List<SearchResponse> =
         Movie2FreeHDParser.cards(document("$mainUrl/?s=${URLEncoder.encode(query, "UTF-8")}")).map { it.response() }
