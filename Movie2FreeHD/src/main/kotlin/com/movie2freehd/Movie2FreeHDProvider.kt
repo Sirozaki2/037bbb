@@ -1,0 +1,94 @@
+package com.movie2freehd
+
+import android.content.Context
+import com.lagradost.cloudstream3.*
+import com.lagradost.cloudstream3.network.CloudflareKiller
+import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
+import com.lagradost.cloudstream3.plugins.Plugin
+import com.lagradost.cloudstream3.utils.*
+import java.net.URLEncoder
+import kotlin.coroutines.cancellation.CancellationException
+
+@CloudstreamPlugin
+class Movie2FreeHDPlugin : Plugin() {
+    override fun load(context: Context) { registerMainAPI(Movie2FreeHDProvider()) }
+}
+
+class Movie2FreeHDProvider : MainAPI() {
+    override var mainUrl = "https://movie2freehd.com"
+    override var name = "Movie2FreeHD"
+    override var lang = "th"
+    override val hasMainPage = true
+    override val hasDownloadSupport = true
+    override val supportedTypes = setOf(TvType.Movie, TvType.TvSeries)
+    override var sequentialMainPage = true
+    override var sequentialMainPageDelay = 100L
+    override val mainPage = SiteCategories.entries.map { (path, title) -> mainPage(mainUrl + path, title) }
+    private val cloudflare by lazy { CloudflareKiller() }
+
+    private suspend fun document(url: String, fresh: Boolean = false): org.jsoup.nodes.Document {
+        val response = if (fresh) app.get(url, interceptor = cloudflare, cacheTime = 0) else app.get(url, interceptor = cloudflare)
+        if (response.code !in 200..299) throw ErrorLoadingException("Movie2FreeHD ไม่พร้อมใช้งาน (HTTP ${response.code})")
+        return response.document.apply { setBaseUri(response.url) }
+    }
+    private fun MovieCard.response(): SearchResponse = if (series) {
+        newTvSeriesSearchResponse(title, url, TvType.TvSeries) { posterUrl = poster; posterHeaders = mapOf("Referer" to "$mainUrl/") }
+    } else {
+        newMovieSearchResponse(title, url, TvType.Movie) { posterUrl = poster; posterHeaders = mapOf("Referer" to "$mainUrl/") }
+    }
+    override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
+        val doc = document(Movie2FreeHDParser.pageUrl(request.data, page))
+        return newHomePageResponse(listOf(HomePageList(request.name, Movie2FreeHDParser.cards(doc).map { it.response() })), Movie2FreeHDParser.hasNext(doc))
+    }
+    override suspend fun search(query: String): List<SearchResponse> =
+        Movie2FreeHDParser.cards(document("$mainUrl/?s=${URLEncoder.encode(query, "UTF-8")}")).map { it.response() }
+
+    override suspend fun load(url: String): LoadResponse {
+        val detail = Movie2FreeHDParser.detail(document(url))
+        return if (detail.series) {
+            newTvSeriesLoadResponse(detail.title, url, TvType.TvSeries, detail.episodes.map { ep ->
+                newEpisode("$url#season=${ep.season}&episode=${ep.number}") { name = ep.title; season = ep.season; episode = ep.number }
+            }) { posterUrl = detail.poster; posterHeaders = mapOf("Referer" to url); plot = detail.plot; tags = detail.tags }
+        } else newMovieLoadResponse(detail.title, url, TvType.Movie, url) {
+            posterUrl = detail.poster; posterHeaders = mapOf("Referer" to url); plot = detail.plot; tags = detail.tags
+        }
+    }
+    override fun getVideoInterceptor(extractorLink: ExtractorLink): okhttp3.Interceptor? =
+        MeeRouting.decode(extractorLink.extractorData)?.let { MeeRoutingInterceptor(it) }
+
+    override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
+        val pageUrl = data.substringBefore('#')
+        val doc = document(pageUrl, fresh = true)
+        val episode = Regex("^season=(\\d+)&episode=(\\d+)$").matchEntire(data.substringAfter('#', ""))
+        val players = mutableListOf<PlayerLink>()
+        if (episode != null) {
+            players += Movie2FreeHDParser.detail(doc).episodes.firstOrNull {
+                it.season == episode.groupValues[1].toInt() && it.number == episode.groupValues[2].toInt()
+            }?.players.orEmpty()
+        } else for (option in Movie2FreeHDParser.options(doc)) {
+            try {
+                val response = app.post("$mainUrl/wp-admin/admin-ajax.php", referer = pageUrl, cacheTime = 0,
+                    data = mapOf("action" to "doo_player_ajax", "post" to option.post, "nume" to option.number, "type" to option.type))
+                if (response.code == 200) Movie2FreeHDParser.embed(response.text, pageUrl)?.let { players += PlayerLink(it, option.label) }
+            } catch (error: Exception) { if (error is CancellationException) throw error }
+        }
+        val resolver = MeePlayerResolver(
+            get = { url, ref -> app.get(url, referer = ref, cacheTime = 0).let { PlayerPage(it.url, it.text, it.code) } },
+            post = { url, ref, payload -> app.post(url, referer = ref, json = payload, cacheTime = 0).let { PlayerPage(it.url, it.text, it.code) } }
+        )
+        val emitted = mutableSetOf<String>()
+        val emit: (ExtractorLink) -> Unit = { if (emitted.add(it.url)) callback(it) }
+        for (player in Movie2FreeHDParser.mergePlayers(players)) {
+            try {
+                if (MeePlayerResolver.isMeePlayer(player.url)) {
+                    val stream = resolver.resolve(player.url, pageUrl) ?: continue
+                    stream.subtitle?.let { subtitleCallback(newSubtitleFile("คำบรรยาย", it)) }
+                    emit(newExtractorLink(name, "$name - ${player.label}", stream.url, ExtractorLinkType.M3U8) {
+                        referer = stream.referer; extractorData = stream.routing; quality = Qualities.Unknown.value
+                    })
+                } else loadExtractor(player.url, pageUrl, subtitleCallback, emit)
+            } catch (error: Exception) { if (error is CancellationException) throw error }
+        }
+        return emitted.isNotEmpty()
+    }
+}

@@ -60,4 +60,18 @@ class TwentyFiveParserTest {
         assertEquals("https://zmdb.net/embed?id=123&type=tv&season=2&episode=3", episodes.last().url)
         assertFalse(episodes.last().url.contains("token"))
     }
+
+    @Test fun `lazy poster loads real URL for cards and detail`() {
+        val doc = Jsoup.parse("""<div class=main-movie><div class=movie_box><a href="/film/" aria-label="Movie">
+            <img src="data:image/gif;base64,AA" data-src="/real.jpg"></a></div></div>
+            <meta property=og:title content="Movie"><div class=thumb-img><img src="data:image/gif;base64,AA" data-lazy-src="/detail.jpg"></div>
+            <div class=fake-player-container data-embed-url="https://zmdb.net/embed?id=1"></div>""", "https://25-hd.com/")
+        assertEquals("https://25-hd.com/real.jpg", TwentyFiveParser.cards(doc).single().poster)
+        assertEquals("https://25-hd.com/detail.jpg", TwentyFiveParser.detail(doc).poster)
+    }
+    @Test fun `year menu labels match their destination year`() {
+        for ((path, label) in SiteCategories.entries.filter { it.first.startsWith("/years/") }) {
+            assertTrue("$label points to $path", label.contains(path.substringAfterLast('/')))
+        }
+    }
 }

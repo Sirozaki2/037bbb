@@ -102,4 +102,9 @@ class MovieListingParserTest {
         assertTrue(MovieListingParser.parse(document).isEmpty())
         assertFalse(MovieListingParser.hasNextPage(document))
     }
+
+    @Test fun `pagination preserves search filters and replaces an existing page suffix`() {
+        assertEquals("https://www.037-hdd.com/page/2/?s=movie", MovieListingParser.pageUrl("https://www.037-hdd.com/?s=movie", 2))
+        assertEquals("https://www.037-hdd.com/category/action/page/3/", MovieListingParser.pageUrl("https://www.037-hdd.com/category/action/page/2/", 3))
+    }
 }

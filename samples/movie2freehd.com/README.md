@@ -1,0 +1,1 @@
+HTML structure excerpts fetched from movie2freehd.com on 2026-10-27. Canonical URLs are embedded in each fixture. Advertising, analytics and full plot text omitted. Player/API regression tests use synthetic IDs and tokens.

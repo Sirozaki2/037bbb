@@ -38,7 +38,9 @@ internal object TwentyFourHDParser {
             // Each card has its own CSS rule; selecting the first background globally repeats one poster.
             val block = id?.let { Regex("\\.${Regex.escape(it)}\\s[^{}]+\\{[^{}]*}").findAll(styles).map { it.value }.firstOrNull { cssUrl.containsMatchIn(it) } }
             val image: String? = block?.let { cssUrl.find(it)?.groupValues?.get(1) }
-                ?: e.selectFirst("img")?.attr("src")
+                ?: e.selectFirst("img")?.let { img ->
+                    listOf("data-src", "data-lazy-src", "src").firstNotNullOfOrNull { httpUrl(doc.baseUri(), img.attr(it)) }
+                }
             SiteCard(title, url, image?.let { httpUrl(doc.baseUri(), it) }, number.containsMatchIn(title) || title.contains("Season", true))
         }.distinctBy { it.url }
     }
@@ -78,12 +80,15 @@ internal object TwentyFourHDParser {
 
     fun pageUrl(doc: Document, page: Int): String {
         if (page <= 1) return doc.baseUri()
-        val next = listing(doc).selectFirst("[data-next-page]")?.attr("data-next-page")
+        val next = listing(doc).selectFirst("[data-next-page]")?.attr("data-next-page")?.let { httpUrl(doc.baseUri(), it) }
         if (next != null && Regex("[?&]e-page-[^=]+=\\d+").containsMatchIn(next)) {
             return next.replace(Regex("([?&]e-page-[^=]+=)\\d+")) { it.groupValues[1] + page }
         }
         return pageUrl(doc.baseUri(), page)
     }
 
-    fun hasNext(doc: Document): Boolean = listing(doc).select("a.next[href], a[rel=next][href]").isNotEmpty()
+    fun hasNext(doc: Document): Boolean = listing(doc).select("a.next[href], a[rel=next][href], [data-next-page]").any { e ->
+        val value = if (e.hasAttr("data-next-page")) e.attr("data-next-page") else e.attr("href")
+        value.isNotBlank() && value != "#" && httpUrl(doc.baseUri(), value)?.let { it != doc.baseUri() } == true
+    }
 }

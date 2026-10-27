@@ -1,5 +1,5 @@
 dependencies { testImplementation("junit:junit:4.13.2") }
-version = 1
+version = 2
 cloudstream {
     language = "th"
     description = "AHDZero อนิเมะ พากย์ไทย ซับไทย"

@@ -24,8 +24,8 @@ class AHDZeroProvider : MainAPI() {
     override var sequentialMainPageDelay = 100L
     override val mainPage = SiteCategories.entries.map { (path, title) -> mainPage(mainUrl + path, title) }
     private val cloudflare by lazy { CloudflareKiller() }
-    private suspend fun document(url: String): org.jsoup.nodes.Document {
-        val response = app.get(url, interceptor = cloudflare, cacheTime = 0)
+    private suspend fun document(url: String, fresh: Boolean = false): org.jsoup.nodes.Document {
+        val response = if (fresh) app.get(url, interceptor = cloudflare, cacheTime = 0) else app.get(url, interceptor = cloudflare)
         if (response.code !in 200..299) throw ErrorLoadingException("เว็บปฏิเสธการเข้าถึง (HTTP ${response.code})")
         return response.document.apply { setBaseUri(response.url) }
     }
@@ -58,7 +58,7 @@ class AHDZeroProvider : MainAPI() {
     }
 
     override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
-        val embed = AHDZeroParser.embed(document(data)) ?: return false
+        val embed = AHDZeroParser.embed(document(data, fresh = true)) ?: return false
         val player = app.get(embed, referer = data, cacheTime = 0)
         val stream = AHDZeroParser.stream(player.document.apply { setBaseUri(player.url) }) ?: return false
         callback(newExtractorLink(name, name, stream, ExtractorLinkType.M3U8) { referer = player.url; quality = Qualities.Unknown.value })

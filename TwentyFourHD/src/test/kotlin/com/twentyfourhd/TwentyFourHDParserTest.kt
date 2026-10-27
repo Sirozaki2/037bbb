@@ -6,7 +6,7 @@ import org.junit.Test
 import java.io.File
 
 class TwentyFourHDParserTest {
-    private fun fixture(name: String) = File("../samples/24hd.today/$name.html").readText().let { html ->
+    private fun fixture(name: String) = File("../samples/regression/24hd.today/$name.html").readText().let { html ->
         val canonical = Jsoup.parse(html).selectFirst("link[rel=canonical]")?.attr("href") ?: "https://www.24hd.today/?s=dfog"
         Jsoup.parse(html, canonical)
     }
@@ -71,5 +71,20 @@ class TwentyFourHDParserTest {
         val paths = fixture("home").select("a[href]").map { it.attr("href").removePrefix("https://www.24hd.today").trimEnd('/') }
             .filter { it.startsWith("/category/") || it.startsWith("/tag/") }.toSet()
         assertEquals(paths, SiteCategories.entries.map { it.first }.filter { it.isNotBlank() }.toSet())
+    }
+
+    @Test fun `load more pagination accepts relative next URL and stops at the last page`() {
+        val doc = Jsoup.parse("""<div class=elementor-widget-loop-grid><div data-next-page="?e-page-grid=2"></div></div>""", "https://www.24hd.today/category/action/")
+        assertTrue(TwentyFourHDParser.hasNext(doc))
+        assertEquals("https://www.24hd.today/category/action/?e-page-grid=3", TwentyFourHDParser.pageUrl(doc, 3))
+        doc.selectFirst("[data-next-page]")!!.attr("data-next-page", "")
+        assertFalse(TwentyFourHDParser.hasNext(doc))
+    }
+    @Test fun `lazy image fallback skips data placeholder without card CSS`() {
+        val doc = Jsoup.parse("""<div class=elementor-widget-loop-grid><div class=e-loop-item>
+            <a class=e-con href="/series/"><img src="data:image/gif;base64,AA" data-src="/poster.jpg"></a>
+            <h3 class=elementor-heading-title>Series EP. 1</h3>
+        </div></div>""", "https://www.24hd.today/")
+        assertEquals("https://www.24hd.today/poster.jpg", TwentyFourHDParser.cards(doc).single().poster)
     }
 }

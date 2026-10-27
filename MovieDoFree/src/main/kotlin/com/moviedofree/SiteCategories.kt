@@ -1,6 +1,6 @@
 package com.moviedofree
 
-// Public navigation categories captured from the website; URLs are relative to mainUrl.
+// Movie categories captured from the website; series menus are omitted until episode loading is supported.
 internal object SiteCategories {
     val entries = listOf(
         "/" to "หนังล่าสุด",
@@ -10,9 +10,6 @@ internal object SiteCategories {
         "/action-หนังแอคชั่น" to "Action บู้",
         "/animation-แอนนิเมชั่น" to "Cartoon การ์ตูน",
         "/netflix" to "หนัง Netflix",
-        "/ซีรีย์ฝรั่ง" to "ซีรี่ย์ฝรั่ง",
-        "/ซีรีย์จีน" to "ซีรี่ย์จีน",
-        "/ซีรีย์เกาหลี" to "ซีรี่ย์เกาหลี",
         "/หนังจีน" to "หนังจีน",
         "/หนังซอมบี้" to "หนังซอมบี้",
         "/หนังญี่ปุ่น" to "หนังญี่ปุ่น",

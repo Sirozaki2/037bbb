@@ -6,6 +6,7 @@ import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
 import com.lagradost.cloudstream3.plugins.Plugin
 import com.lagradost.cloudstream3.utils.*
 import java.net.URLEncoder
+import kotlin.coroutines.cancellation.CancellationException
 
 @CloudstreamPlugin
 class TwentyFiveHDPlugin : Plugin() {
@@ -67,17 +68,27 @@ class TwentyFiveHDProvider : MainAPI() {
         var found = false
         val emit: (ExtractorLink) -> Unit = { found = true; callback(it) }
         for (stream in resolver.resolve(data, "$mainUrl/")) {
-            if (stream.hls) {
-                val master = app.get(stream.url, referer = stream.referer, cacheTime = 0)
-                val routing = HlsRouting.steeringUrl(stream.url, master.text)?.let { routingUrl ->
-                    HlsRouting.fromManifest(stream.url, app.get(routingUrl, referer = stream.referer, cacheTime = 0).text)
-                }
-                emit(newExtractorLink(name, "$name - ${stream.label}", stream.url, ExtractorLinkType.M3U8) {
-                    referer = stream.referer
-                    extractorData = routing?.encode()
-                    quality = Qualities.Unknown.value
-                })
-            } else loadExtractor(stream.url, stream.referer, subtitleCallback, emit)
+            try {
+                if (stream.hls) {
+                    // Steering is optional. A failed steering request must not discard a playable master.
+                    val routing = try {
+                        val master = app.get(stream.url, referer = stream.referer, cacheTime = 0)
+                        HlsRouting.steeringUrl(stream.url, master.text)?.let { routingUrl ->
+                            HlsRouting.fromManifest(stream.url, app.get(routingUrl, referer = stream.referer, cacheTime = 0).text)
+                        }
+                    } catch (error: Exception) {
+                        if (error is CancellationException) throw error
+                        null
+                    }
+                    emit(newExtractorLink(name, "$name - ${stream.label}", stream.url, ExtractorLinkType.M3U8) {
+                        referer = stream.referer
+                        extractorData = routing?.encode()
+                        quality = Qualities.Unknown.value
+                    })
+                } else loadExtractor(stream.url, stream.referer, subtitleCallback, emit)
+            } catch (error: Exception) {
+                if (error is CancellationException) throw error
+            }
         }
         return found
     }
