@@ -1,6 +1,6 @@
 ## ปลั๊กอินสำหรับ Cloudstream
 
-เพิ่ม repository ด้วย `https://raw.githubusercontent.com/popo0606/037/master/repo.json`
+เพิ่ม repository ด้วย `https://raw.githubusercontent.com/jasdwa22/037bb/master/repo.json`
 แล้วติดตั้งปลั๊กอินที่ต้องการจากรายการส่วนขยาย:
 
 | ปลั๊กอิน | ชื่อแหล่งในแอป | รองรับ |
