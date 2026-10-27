@@ -154,7 +154,11 @@ class ExampleProvider : MainAPI() {
                 })
             }
             if (streams.isEmpty()) {
-                loadExtractor(iframeUrl, data, subtitleCallback, emit)
+                try {
+                    loadExtractor(iframeUrl, data, subtitleCallback, emit)
+                } catch (error: Exception) {
+                    if (error is CancellationException) throw error
+                }
             }
         }
         return found

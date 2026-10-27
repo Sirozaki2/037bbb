@@ -61,4 +61,10 @@ class AHDZeroParserTest {
             .filter { it.startsWith("/genre/") || it.startsWith("/category/") }.toSet()
         assertEquals(paths, SiteCategories.entries.map { it.first }.filter { it.isNotBlank() }.toSet())
     }
+
+    @Test fun `episodes are sorted numerically even when newest is listed first`() {
+        val doc = Jsoup.parse("""<h1>Anime</h1><a class=ep-row href="/episode/10">ตอนที่ 10</a>
+            <a class=ep-row href="/episode/2">ตอนที่ 2</a><a class=ep-row href="/episode/1">ตอนที่ 1</a>""", "https://ahdzero.com/anime/1")
+        assertEquals(listOf(1, 2, 10), AHDZeroParser.detail(doc).episodes.map { it.number })
+    }
 }

@@ -25,8 +25,8 @@ class TwentyFourHDProvider : MainAPI() {
     override var sequentialMainPageDelay = 100L
     override val mainPage = SiteCategories.entries.map { (path, title) -> mainPage(mainUrl + path, title) }
     private val cloudflare by lazy { CloudflareKiller() }
-    private suspend fun document(url: String): org.jsoup.nodes.Document {
-        val response = app.get(url, interceptor = cloudflare, cacheTime = 0)
+    private suspend fun document(url: String, fresh: Boolean = false): org.jsoup.nodes.Document {
+        val response = if (fresh) app.get(url, interceptor = cloudflare, cacheTime = 0) else app.get(url, interceptor = cloudflare)
         if (response.code !in 200..299) throw ErrorLoadingException("เว็บปฏิเสธการเข้าถึง (HTTP ${response.code})")
         return response.document.apply { setBaseUri(response.url) }
     }
@@ -58,7 +58,7 @@ class TwentyFourHDProvider : MainAPI() {
 
     override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
         val page = data.substringBefore('#')
-        val detail = TwentyFourHDParser.detail(document(page))
+        val detail = TwentyFourHDParser.detail(document(page, fresh = true))
         val episode = data.substringAfter("#episode=", "").toIntOrNull()
         val players = if (episode != null) detail.episodes.firstOrNull { it.number == episode }?.players.orEmpty() else detail.players
         var found = false

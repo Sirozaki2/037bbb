@@ -5,8 +5,8 @@ internal object SiteCategories {
     val entries = listOf(
         "/" to "อัปเดตล่าสุด",
         "/category/ดูหนัง" to "ดูหนังใหม่",
-        "/years/2025" to "ดูหนังใหม่ 2026",
-        "/years/2024" to "ดูหนังใหม่ 2025",
+        "/years/2025" to "หนังปี 2025",
+        "/years/2024" to "หนังปี 2024",
         "/category/หนังไทย" to "ดูหนังไทยออนไลน์",
         "/category/ซีรี่ส์-netflix" to "ดูซีรี่ส์ Netflix",
         "/category/ซีรี่ส์เกาหลี" to "ซีรี่ส์เกาหลี",

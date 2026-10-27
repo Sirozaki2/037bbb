@@ -1,13 +1,12 @@
 dependencies {
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
-    implementation("org.jspecify:jspecify:1.0.0")
     testImplementation("junit:junit:4.13.2")
 }
 
 // Use an integer for version numbers
 
-version = 7
+version = 8
 
 cloudstream {
     language = "th"

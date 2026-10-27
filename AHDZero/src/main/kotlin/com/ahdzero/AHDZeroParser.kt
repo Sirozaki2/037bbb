@@ -42,7 +42,7 @@ internal object AHDZeroParser {
         val episodes = doc.select("a.ep-row[href]").mapNotNull { e ->
             val url = httpUrl(doc.baseUri(), e.attr("href")) ?: return@mapNotNull null
             AnimeEpisode(e.text().removePrefix("▶").trim(), url, episodeNumber.find(e.text())?.groupValues?.get(1)?.toIntOrNull())
-        }.distinctBy { it.url }
+        }.distinctBy { it.url }.sortedBy { it.number ?: Int.MAX_VALUE }
         val movie = doc.select("main .font-mono").any { it.ownText().trim().matches(Regex("Movie(?:\\s*·.*)?", RegexOption.IGNORE_CASE)) }
         return AnimeDetail(title, httpUrl(doc.baseUri(), doc.selectFirst("meta[property=og:image]")?.attr("content").orEmpty()),
             doc.selectFirst(".anime-desc")?.text()?.takeIf { it.isNotBlank() }, movie, episodes)
