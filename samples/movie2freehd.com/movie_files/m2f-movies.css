@@ -1,0 +1,257 @@
+/* =========================================================
+ * M2F Single Movie — Layout v2
+ * Match m2f-tvshows.css design (poster + details + comments)
+ * แต่ใช้ DooPlayer parent (player options / multi-server / ads)
+ *
+ * NOTE: DooPlayer parent ใช้ float:left → ต้อง clear: both
+ * ก่อน block M2F ใหม่ทุกอัน
+ * ========================================================= */
+
+/* ===== Container ===== */
+#single.m2f-movie {
+    margin: 0 auto;
+    max-width: 1200px;
+}
+#single.m2f-movie .content {
+    padding: 20px 0;
+}
+
+.m2f-movie h1, .m2f-movie h2, .m2f-movie h3 {
+    font-family: inherit;
+}
+
+/* ===== CRITICAL — แยก float context ของ parent player ===== */
+#single.m2f-movie .dooplay_player {
+    margin-bottom: 24px;
+}
+#single.m2f-movie .dooplay_player::after {
+    content: "";
+    display: block;
+    clear: both;
+}
+
+/* ===== Head: Poster + Info ===== */
+.m2f-movie .m2f-tvhead {
+    clear: both;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    margin-bottom: 30px;
+    padding: 0 20px;
+    box-sizing: border-box;
+}
+.m2f-movie .m2f-poster-big {
+    flex: 0 0 200px;
+    max-width: 200px;
+}
+.m2f-movie .m2f-poster-big img {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.35);
+    display: block;
+}
+.m2f-movie .m2f-poster-empty {
+    aspect-ratio: 2/3;
+    background: #2a2f3a;
+    color: #777;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+.m2f-movie .m2f-tvinfo {
+    flex: 1 1 280px;
+    min-width: 0;
+}
+.m2f-movie .m2f-title {
+    font-size: 28px;
+    line-height: 1.2;
+    margin: 0 0 10px 0;
+    font-weight: 700;
+}
+.m2f-movie .m2f-tagline {
+    display: block;
+    font-style: italic;
+    opacity: .75;
+    margin: -4px 0 10px 0;
+    font-size: 14px;
+}
+.m2f-movie .m2f-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+    align-items: center;
+}
+.m2f-movie .m2f-tag {
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.12);
+    color: inherit;
+    padding: 3px 10px;
+    border-radius: 14px;
+    font-size: 12px;
+}
+.m2f-movie .m2f-tag small { opacity: .7; }
+.m2f-movie .m2f-tag a { color: inherit !important; text-decoration: none; }
+.m2f-movie .m2f-genres {
+    margin-bottom: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.m2f-movie .m2f-genres a {
+    background: #4a5568;
+    color: #fff !important;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    text-decoration: none;
+}
+.m2f-movie .m2f-genres a:hover { background: #2d3748; }
+.m2f-movie .m2f-synopsis {
+    margin: 16px 0;
+    line-height: 1.7;
+    font-size: 14.5px;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+}
+.m2f-movie .m2f-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin: 12px 0 18px 0;
+    padding: 10px 14px;
+    background: rgba(0,0,0,.06);
+    border-radius: 6px;
+    font-size: 13px;
+}
+.m2f-movie .m2f-stats b { margin-right: 4px; }
+/* ===== Tags chips ===== */
+.m2f-movie .m2f-tags {
+    margin-top: 18px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+.m2f-movie .m2f-tags::before {
+    content: "🏷️";
+    font-size: 14px;
+    margin-right: 4px;
+    opacity: .85;
+}
+.m2f-movie .m2f-tags a {
+    display: inline-block;
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.12);
+    color: inherit !important;
+    padding: 4px 10px;
+    border-radius: 14px;
+    font-size: 12px;
+    text-decoration: none;
+    transition: background .15s, border-color .15s, transform .12s;
+}
+.m2f-movie .m2f-tags a:hover {
+    background: rgba(76, 175, 80, .15);
+    border-color: rgba(76, 175, 80, .4);
+    transform: translateY(-1px);
+}
+
+/* ===== People (Director + Cast) ===== */
+.m2f-movie .m2f-people-block { margin-top: 18px; }
+.m2f-movie .m2f-people-block h3 {
+    font-size: 15px;
+    margin: 0 0 10px 0;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    opacity: .9;
+}
+.m2f-movie .m2f-people-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+}
+.m2f-movie .m2f-person {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px;
+    border-radius: 6px;
+    transition: background .15s;
+    min-width: 0;
+}
+.m2f-movie .m2f-person:hover { background: rgba(255,255,255,.04); }
+.m2f-movie .m2f-person img {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+.m2f-movie .m2f-person > div { min-width: 0; }
+.m2f-movie .m2f-person .m2f-pname {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: inherit !important;
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.m2f-movie .m2f-person .m2f-pname:hover { text-decoration: underline; }
+.m2f-movie .m2f-person .m2f-prole {
+    display: block;
+    font-size: 11px;
+    opacity: .7;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.m2f-movie .m2f-person.m2f-hidden { display: none; }
+.m2f-movie .m2f-people-block[data-collapsed="0"] .m2f-person.m2f-hidden { display: flex; }
+
+.m2f-movie .m2f-view-more-btn {
+    margin-top: 8px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,.2);
+    color: inherit;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+}
+.m2f-movie .m2f-view-more-btn:hover { background: rgba(255,255,255,.06); }
+
+/* ===== M2F blocks ที่ตามมาต้อง clear float ด้วย ===== */
+.m2f-movie .module_single_ads,
+.m2f-movie .social_share,
+.m2f-movie .related_post,
+.m2f-movie #m2f-comments,
+.m2f-movie .breadcrumb_bottom {
+    clear: both;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 900px) {
+    .m2f-movie .m2f-tvhead {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 20px;
+    }
+    .m2f-movie .m2f-poster-big {
+        flex: 0 0 auto;
+        max-width: 200px;
+        margin: 0 auto;
+    }
+    .m2f-movie .m2f-title { font-size: 22px; text-align: center; }
+    .m2f-movie .m2f-meta-row { justify-content: center; }
+    .m2f-movie .m2f-genres { justify-content: center; }
+}
+@media (max-width: 600px) {
+    .m2f-movie .m2f-people-list {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+}

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<!-- saved from url=(0058)https://backup.ssplayer168.xyz/api/embed/index.php?id=8108 -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Player - Drawn Together (2026)</title>
+    <meta name="robots" content="noindex">
+    <!--<meta name="referrer" content="no-referrer">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com/">
+    <link rel="dns-prefetch" href="https://fastfastcdn.com/">
+    <style>
+        html {
+            background: #000;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            overflow: hidden;
+            position: fixed;
+            border: 0;
+            margin: 0;
+            padding: 0;
+        }
+
+        #main-player,
+        #backup-player {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 60px;
+            background: #000;
+        }
+
+        #backup-player {
+            display: none;
+        }
+
+        #main-player iframe,
+        #backup-player iframe {
+            display: block;
+            width: 100%;
+            height: 100% !important;
+            border: none;
+        }
+
+        /* สปินเนอร์ระหว่างรอ FastCDN โหลด (แทนหน้าขาว) */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 44px;
+            height: 44px;
+            margin: -22px 0 0 -22px;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top-color: #ff6b35;
+            border-radius: 50%;
+            animation: spin .8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .button_style {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 0 10px;
+            box-sizing: border-box;
+        }
+
+        .button_style button {
+            background: #333;
+            color: #fff;
+            border: 1px solid #555;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background .2s, border-color .2s;
+            min-width: 80px;
+        }
+
+        .button_style button:hover {
+            background: #555;
+            border-color: #777;
+        }
+
+        .button_style button.active {
+            background: #ff6b35;
+            border-color: #ff6b35;
+            color: #fff;
+        }
+
+        .button_style button:disabled {
+            background: #222;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        @media screen and (max-width: 768px) {
+            .button_style {
+                height: 50px;
+                gap: 5px;
+                padding: 0 5px;
+            }
+
+            .button_style button {
+                padding: 6px 12px;
+                font-size: 11px;
+                min-width: 60px;
+            }
+
+            #main-player,
+            #backup-player {
+                bottom: 50px;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .button_style button {
+                padding: 5px 8px;
+                font-size: 10px;
+                min-width: 50px;
+            }
+        }
+
+        .error-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .error-message h3 {
+            color: #ff6b35;
+            margin-bottom: 10px;
+        }
+    </style>
+<script async="" src="./js"></script></head>
+
+<body>
+    <script>
+        // เอาสปินเนอร์ออกเมื่อเริ่มพ่นตัวเล่นจริง
+        var _pl = document.getElementById('preload');
+        if (_pl) _pl.remove();
+    </script>
+
+    <div id="main-player" style="display: none;">
+                    <iframe title="Video Player" id="main-iframe" src="./saved_resource(1).html" allowfullscreen="" webkitallowfullscreen="" mozallowfullscreen="" scrolling="no" frameborder="0" width="100%" height="100%" style="width:100%;height:100%;">
+            </iframe>
+            </div>
+
+    <div id="backup-player" style="display: block;">
+                    <iframe title="Backup Video Player" id="backup-iframe" src="./754e325278b45238faf2f87c0b3c53fd.html" allowfullscreen="" webkitallowfullscreen="" mozallowfullscreen="" scrolling="no" frameborder="0" width="100%" height="100%" style="width:100%;height:100%;" loading="lazy">
+            </iframe>
+            </div>
+
+    <div class="button_style">
+                    <button class="linkserver active" data-url="https://fastcdnv2.com/embed/754e325278b45238faf2f87c0b3c53fd">FastCDN</button>
+                
+                    <button class="linkserver" data-url="bunny/index.php?id=8108">ตัวเล่นไว</button>
+                
+                    <button class="linkserver" data-url="jw/main.php?id=8108">สำรอง</button>
+                
+        <!--            <button class="linkserver" data-url="v5/index.php?id=8108">สำรอง</button>
+        -->
+        
+    </div>
+
+    <script>
+        // ป้องกันคลิกขวา/copy/F12 — ทำงานได้ทันทีโดยไม่ต้องรอ DOMContentLoaded
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        }, false);
+        document.addEventListener('copy', function(e) {
+            e.preventDefault();
+        }, false);
+        document.addEventListener('keydown', function(e) {
+            if (e.keyCode === 123 ||
+                (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) ||
+                (e.ctrlKey && e.keyCode === 85)) {
+                e.preventDefault();
+                return false;
+            }
+        }, false);
+
+        // จัดการเปลี่ยนตัวเล่น (vanilla JS แทน jQuery)
+        (function() {
+            var mainPlayer = document.getElementById('main-player');
+            var backupPlayer = document.getElementById('backup-player');
+            var mainIframe = document.getElementById('main-iframe');
+            var backupIframe = document.getElementById('backup-iframe');
+            var buttons = document.querySelectorAll('.linkserver');
+
+            function switchTo(btn) {
+                if (btn.classList.contains('active')) return;
+
+                var url = btn.getAttribute('data-url');
+
+                // หยุด iframe ทั้งหมด
+                if (mainIframe) mainIframe.src = 'about:blank';
+                if (backupIframe) backupIframe.src = 'about:blank';
+
+                // อัปเดตสถานะปุ่ม
+                for (var i = 0; i < buttons.length; i++) buttons[i].classList.remove('active');
+                btn.classList.add('active');
+
+                // ซ่อนทุกตัวเล่น
+                if (mainPlayer) mainPlayer.style.display = 'none';
+                if (backupPlayer) backupPlayer.style.display = 'none';
+
+                // โหลดในตัวเล่นสำรอง (เร็วขึ้นจาก 500ms เหลือ 100ms)
+                setTimeout(function() {
+                    if (backupIframe) {
+                        backupIframe.src = url;
+                        backupPlayer.style.display = 'block';
+                    }
+                }, 100);
+            }
+
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].addEventListener('click', function(e) {
+                    e.preventDefault();
+                    switchTo(this);
+                });
+            }
+        })();
+
+        // โหลด Google Analytics หลังจากหน้าเว็บโหลดเสร็จ (ไม่บล็อกการเรนเดอร์)
+        window.addEventListener('load', function() {
+            var s = document.createElement('script');
+            s.async = true;
+            s.src = 'https://www.googletagmanager.com/gtag/js?id=G-L1CN71XLNW';
+            document.head.appendChild(s);
+            window.dataLayer = window.dataLayer || [];
+
+            function gtag() {
+                dataLayer.push(arguments);
+            }
+            gtag('js', new Date());
+            gtag('config', 'G-L1CN71XLNW');
+            window.gtag = gtag;
+        });
+    </script>
+<script type="module" src="./vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon="{&quot;version&quot;:&quot;2024.11.0&quot;,&quot;token&quot;:&quot;e3f953459b33487eb28c6c5a5c4218fd&quot;,&quot;r&quot;:1,&quot;spa&quot;:2}" crossorigin="anonymous"></script>
+
+
+
+</body></html>

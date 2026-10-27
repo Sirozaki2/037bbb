@@ -1,0 +1,348 @@
+/**
+ * M2F Comments JS
+ * - submit (with Turnstile)
+ * - reply (set parent_id)
+ * - admin delete
+ * - sort toggle (asc/desc)
+ * - view all
+ */
+(function () {
+    'use strict';
+
+    var root = document.getElementById('m2f-comments');
+    if (!root) return;
+
+    // ===== Anonymous identity cookie (set ก่อน comment เพื่อให้ PHP รู้ว่าเป็น user คนเดียวกัน) =====
+    function getOrSetAnonCookie() {
+        var match = document.cookie.match(/(?:^|; )m2f_anon=([a-f0-9]{16,40})/i);
+        if (match) return match[1];
+        // generate 24 hex chars
+        var bytes = new Uint8Array(12);
+        (window.crypto || window.msCrypto).getRandomValues(bytes);
+        var id = Array.prototype.map.call(bytes, function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+        var d = new Date();
+        d.setFullYear(d.getFullYear() + 1);
+        var secure = location.protocol === 'https:' ? '; Secure' : '';
+        document.cookie = 'm2f_anon=' + id + '; expires=' + d.toUTCString() + '; path=/; SameSite=Lax' + secure;
+        return id;
+    }
+    // Initialize cookie immediately so it's available before user comments
+    getOrSetAnonCookie();
+
+    var ajaxUrl   = root.getAttribute('data-ajax');
+    var nonce     = root.getAttribute('data-nonce');
+    var postId    = root.getAttribute('data-post-id');
+    var canDelete = root.getAttribute('data-can-delete') === '1';
+    var initial   = parseInt(root.getAttribute('data-initial'), 10) || 10;
+
+    // Fetch a fresh nonce from server. The HTML page itself is cached by
+    // LSCache so the nonce baked into it may already be expired by the time
+    // a user comes back to comment. We refresh on demand to avoid the
+    // "Session หมดอายุ" error.
+    function refreshNonce() {
+        var fd = new FormData();
+        fd.append('action', 'm2f_refresh_nonce');
+        return fetch(ajaxUrl, { method: 'POST', body: fd, credentials: 'same-origin' })
+            .then(function (r) { return r.json(); })
+            .then(function (j) {
+                if (j && j.success && j.data && j.data.nonce) {
+                    nonce = j.data.nonce;
+                    return nonce;
+                }
+                return null;
+            })
+            .catch(function () { return null; });
+    }
+    // Refresh once on page load so the form always carries a live nonce.
+    refreshNonce();
+
+    var listEl   = document.getElementById('m2f-c-list');
+    var formEl   = document.getElementById('m2f-c-form');
+    var textareaEl = formEl.querySelector('.m2f-c-textarea');
+    var msgEl    = document.getElementById('m2f-c-form-msg');
+    var submitEl = formEl.querySelector('.m2f-c-submit');
+    var sortBtn  = root.querySelector('.m2f-c-sort-btn');
+    var viewAllBtn = document.getElementById('m2f-c-viewall-btn');
+    var turnstileEl = formEl.querySelector('.cf-turnstile');
+    var parentInput = formEl.querySelector('input[name="parent_id"]');
+
+    var turnstileWidgetId = null;
+
+    // ---- Turnstile render (explicit) ----
+    function renderTurnstile() {
+        if (!window.turnstile || !turnstileEl) return;
+        if (turnstileWidgetId !== null) return; // already rendered
+        try {
+            turnstileWidgetId = window.turnstile.render(turnstileEl, {
+                sitekey: turnstileEl.getAttribute('data-sitekey'),
+                theme: 'auto',
+                size: 'flexible',
+                'error-callback': function () {
+                    showMsg('Turnstile error — โหลดใหม่อีกครั้ง', 'error');
+                }
+            });
+        } catch (e) { /* ignore */ }
+    }
+    function resetTurnstile() {
+        if (window.turnstile && turnstileWidgetId !== null) {
+            try { window.turnstile.reset(turnstileWidgetId); } catch (e) {}
+        }
+    }
+    // wait for turnstile script
+    (function waitTurn() {
+        if (window.turnstile) { renderTurnstile(); return; }
+        setTimeout(waitTurn, 200);
+    })();
+
+    // ---- helpers ----
+    function showMsg(text, type) {
+        if (!msgEl) return;
+        msgEl.textContent = text || '';
+        msgEl.className = 'm2f-c-form-msg' + (type ? ' m2f-c-msg-' + type : '');
+        if (text && type === 'success') {
+            setTimeout(function () { showMsg(''); }, 4000);
+        }
+    }
+
+    function setParent(pid, label) {
+        parentInput.value = pid || 0;
+        formEl.setAttribute('data-parent', pid || 0);
+
+        // reply-to label
+        var existing = formEl.querySelector('.m2f-c-reply-to');
+        if (existing) existing.remove();
+        if (pid && pid !== '0' && pid !== 0) {
+            var div = document.createElement('div');
+            div.className = 'm2f-c-reply-to show';
+            div.innerHTML = '↩ ตอบกลับ <b>' + escapeHtml(label || 'ความคิดเห็น') + '</b> ' +
+                            '<button type="button" class="m2f-c-cancel-reply">[ยกเลิก]</button>';
+            formEl.insertBefore(div, textareaEl);
+            div.querySelector('.m2f-c-cancel-reply').addEventListener('click', function () {
+                setParent(0, '');
+            });
+            textareaEl.focus();
+            formEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+    function escapeHtml(s) {
+        return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // ---- submit ----
+    formEl.addEventListener('submit', function (e) {
+        e.preventDefault();
+        showMsg('');
+        var content = (textareaEl.value || '').trim();
+        if (!content) {
+            showMsg('กรุณาพิมพ์ข้อความ', 'error');
+            return;
+        }
+        var turnstileResp = '';
+        if (window.turnstile && turnstileWidgetId !== null) {
+            try { turnstileResp = window.turnstile.getResponse(turnstileWidgetId) || ''; }
+            catch (err) { turnstileResp = ''; }
+        }
+        if (!turnstileResp) {
+            // fallback: read hidden field name="cf-turnstile-response"
+            var hidden = formEl.querySelector('[name="cf-turnstile-response"]');
+            if (hidden) turnstileResp = hidden.value;
+        }
+        if (!turnstileResp) {
+            showMsg('กรุณายืนยัน Turnstile ก่อนส่ง', 'error');
+            return;
+        }
+
+        submitEl.disabled = true;
+        submitEl.textContent = '⏳ กำลังส่ง...';
+
+        // Build the submit attempt as a function so we can retry once if
+        // the server reports an expired nonce (which is normal for pages
+        // served from LSCache long after the original nonce was minted).
+        function attemptSubmit(_nonce) {
+            var fd = new FormData();
+            fd.append('action', 'm2f_post_comment');
+            fd.append('nonce', _nonce);
+            fd.append('post_id', postId);
+            fd.append('parent_id', parentInput.value || 0);
+            fd.append('content', content);
+            fd.append('cf_turnstile_response', turnstileResp);
+            return fetch(ajaxUrl, { method: 'POST', body: fd, credentials: 'same-origin' })
+                .then(function (r) { return r.json().then(function (j) { return { status: r.status, body: j }; }); });
+        }
+
+        attemptSubmit(nonce)
+            .then(function (res) {
+                var j = res.body;
+                if (!j || !j.success) {
+                    var code = j && j.data && j.data.code;
+                    // Auto-retry once on stale nonce.
+                    if (res.status === 403 && code === 'expired_nonce') {
+                        return refreshNonce().then(function (n) {
+                            if (!n) {
+                                showMsg('ไม่สามารถรีเฟรช session — รีโหลดหน้าแล้วลองใหม่', 'error');
+                                resetTurnstile();
+                                return null;
+                            }
+                            return attemptSubmit(n).then(function (res2) { return res2.body; });
+                        });
+                    }
+                    var err = (j && j.data && j.data.message) || 'ส่งไม่สำเร็จ';
+                    showMsg(err, 'error');
+                    resetTurnstile();
+                    return null;
+                }
+                return j;
+            })
+            .then(function (j) {
+                if (!j || !j.success) return;
+                // success
+                textareaEl.value = '';
+                resetTurnstile();
+                showMsg('✓ เพิ่มความคิดเห็นแล้ว', 'success');
+                appendNewComment(j.data.html, parseInt(j.data.parent, 10) || 0);
+                setParent(0, '');
+                bumpCount(1);
+            })
+            .catch(function () {
+                showMsg('Network error — ลองอีกครั้ง', 'error');
+                resetTurnstile();
+            })
+            .finally(function () {
+                submitEl.disabled = false;
+                submitEl.textContent = '📤 ส่งความคิดเห็น';
+            });
+    });
+
+    function appendNewComment(html, parentId) {
+        var temp = document.createElement('div');
+        temp.innerHTML = html.trim();
+        var newNode = temp.firstChild;
+        if (!newNode) return;
+
+        // remove empty placeholder
+        var empty = listEl.querySelector('.m2f-c-empty');
+        if (empty) empty.remove();
+
+        if (parentId > 0) {
+            // append to replies of parent
+            var repBox = listEl.querySelector('.m2f-c-replies[data-parent-cid="' + parentId + '"]');
+            if (repBox) {
+                repBox.appendChild(newNode);
+            } else {
+                // fallback: append as top-level
+                wrapAndAppend(newNode);
+            }
+        } else {
+            wrapAndAppend(newNode);
+        }
+        scrollIntoViewSmooth(newNode);
+    }
+    function wrapAndAppend(commentEl) {
+        var cid = commentEl.getAttribute('data-cid');
+        var group = document.createElement('div');
+        group.className = 'm2f-c-group';
+        group.appendChild(commentEl);
+        var rep = document.createElement('div');
+        rep.className = 'm2f-c-replies';
+        rep.setAttribute('data-parent-cid', cid);
+        group.appendChild(rep);
+
+        // honor current sort: asc = end, desc = beginning
+        var order = sortBtn ? sortBtn.getAttribute('data-order') : 'asc';
+        if (order === 'desc') {
+            listEl.insertBefore(group, listEl.firstChild);
+        } else {
+            listEl.appendChild(group);
+        }
+    }
+    function scrollIntoViewSmooth(el) {
+        setTimeout(function () {
+            try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+        }, 100);
+    }
+
+    function bumpCount(delta) {
+        var countEl = root.querySelector('.m2f-c-count');
+        if (!countEl) return;
+        var m = countEl.textContent.match(/\d+/);
+        var n = m ? parseInt(m[0], 10) : 0;
+        n = Math.max(0, n + delta);
+        countEl.textContent = '(' + n + ')';
+    }
+
+    // ---- reply / delete (event delegation on listEl) ----
+    listEl.addEventListener('click', function (e) {
+        // reply
+        var rb = e.target.closest('.m2f-c-reply-btn');
+        if (rb) {
+            var cid = rb.getAttribute('data-cid');
+            var cEl = listEl.querySelector('.m2f-c[data-cid="' + cid + '"]');
+            var author = cEl ? (cEl.querySelector('.m2f-c-author') || {}).textContent : '';
+            setParent(cid, author || ('#' + cid));
+            return;
+        }
+        // delete
+        var db = e.target.closest('.m2f-c-del-btn');
+        if (db && canDelete) {
+            var did = db.getAttribute('data-cid');
+            if (!confirm('ลบความคิดเห็นนี้?')) return;
+            db.disabled = true;
+            var fd = new FormData();
+            fd.append('action', 'm2f_delete_comment');
+            fd.append('nonce', nonce);
+            fd.append('comment_id', did);
+            fetch(ajaxUrl, { method: 'POST', body: fd, credentials: 'same-origin' })
+                .then(function (r) { return r.json(); })
+                .then(function (j) {
+                    if (j && j.success) {
+                        // remove this comment node
+                        var node = listEl.querySelector('.m2f-c[data-cid="' + did + '"]');
+                        if (node) {
+                            // if it's a top-level comment, remove its m2f-c-group container
+                            var group = node.closest('.m2f-c-group');
+                            if (group && group.querySelector('.m2f-c[data-cid="' + did + '"]') === node && !node.classList.contains('m2f-c-reply')) {
+                                group.remove();
+                            } else {
+                                node.remove();
+                            }
+                            bumpCount(-1);
+                        }
+                    } else {
+                        alert((j && j.data && j.data.message) || 'ลบไม่สำเร็จ');
+                        db.disabled = false;
+                    }
+                })
+                .catch(function () {
+                    alert('Network error');
+                    db.disabled = false;
+                });
+        }
+    });
+
+    // ---- sort toggle ----
+    if (sortBtn) {
+        sortBtn.addEventListener('click', function () {
+            var order = sortBtn.getAttribute('data-order') === 'asc' ? 'desc' : 'asc';
+            sortBtn.setAttribute('data-order', order);
+            var label = sortBtn.querySelector('.m2f-c-sort-label');
+            if (label) label.textContent = order === 'asc' ? 'เรียง: เก่า→ใหม่' : 'เรียง: ใหม่→เก่า';
+
+            // reverse groups
+            var groups = Array.from(listEl.querySelectorAll(':scope > .m2f-c-group'));
+            groups.reverse().forEach(function (g) { listEl.appendChild(g); });
+        });
+    }
+
+    // ---- view all ----
+    if (viewAllBtn) {
+        viewAllBtn.addEventListener('click', function () {
+            listEl.querySelectorAll('.m2f-c-group.m2f-c-hidden').forEach(function (g) {
+                g.classList.remove('m2f-c-hidden');
+            });
+            viewAllBtn.remove();
+        });
+    }
+})();
