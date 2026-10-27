@@ -28,7 +28,15 @@ internal class ThaiAnimeProvider(private val site: Site) : MainAPI() {
     override val mainPage = AnimeCategories.homeEntries.getValue(site).map { (path, title) -> mainPage(mainUrl + path, title) }
     private val cloudflare by lazy { CloudflareKiller() }
     private suspend fun document(url: String, fresh: Boolean = false, referer: String = mainUrl): org.jsoup.nodes.Document {
-        val response = if (fresh) app.get(url, referer = referer, interceptor = cloudflare, cacheTime = 0) else app.get(url, referer = referer, interceptor = cloudflare)
+        val wakuPlayback = site == Site.WAKU && fresh
+        val headers = when {
+            wakuPlayback && WakuPlayer.playerPattern.matches(url) -> mapOf("User-Agent" to WakuPlayer.mediaUserAgent)
+            wakuPlayback -> cloudflare.getCookieHeaders(url).toMap()
+            else -> emptyMap()
+        }
+        // Playback reuses catalog clearance. A blocked API/iframe must not open another 60-second challenge.
+        val interceptor = if (wakuPlayback) null else cloudflare
+        val response = if (fresh) app.get(url, referer = referer, headers = headers, interceptor = interceptor, cacheTime = 0) else app.get(url, referer = referer, headers = headers, interceptor = interceptor)
         if (response.code !in 200..299) throw ErrorLoadingException("$name โหลดหน้าเว็บไม่ได้ (HTTP ${response.code})")
         return response.document.apply { setBaseUri(response.url) }
     }
@@ -55,6 +63,7 @@ internal class ThaiAnimeProvider(private val site: Site) : MainAPI() {
         }
     }
     override fun getVideoInterceptor(extractorLink: ExtractorLink): okhttp3.Interceptor? {
+        if (site == Site.WAKU && extractorLink.extractorData == "waku-nya") return NyaInterceptor()
         if (extractorLink.extractorData != "animemami-playlist") return null
         val host = runCatching { java.net.URI(extractorLink.url).host }.getOrNull() ?: return null
         return AnimeMamiInterceptor(host, cloudflare)
@@ -102,6 +111,10 @@ internal class ThaiAnimeProvider(private val site: Site) : MainAPI() {
                     val manifest = AnimePlayer.manifest(doc)
                     if (manifest != null) emit(newExtractorLink(name, "$name - ${source.label}", manifest, ExtractorLinkType.M3U8) {
                         this.referer = source.url; quality = Qualities.Unknown.value
+                        if (site == Site.WAKU && WakuPlayer.manifestPattern.matches(manifest)) {
+                            headers = mapOf("User-Agent" to WakuPlayer.mediaUserAgent)
+                            extractorData = "waku-nya"
+                        }
                     })
                     else AnimePlayer.unwrap(doc).forEach { resolve(it.copy(label = source.label), source.url, depth + 1) }
                 } else loadExtractor(source.url, referer, subtitleCallback, emit)
@@ -120,7 +133,9 @@ internal class ThaiAnimeProvider(private val site: Site) : MainAPI() {
             if (site == Site.WAKU) {
                 WakuPlayer.sources(doc,
                     getJson = { endpoint, referer ->
-                        val response = app.get(endpoint, referer = referer, interceptor = cloudflare, cacheTime = 0)
+                        val response = app.get(endpoint, referer = referer,
+                            headers = cloudflare.getCookieHeaders(endpoint).toMap() + WakuPlayer.ajaxHeaders,
+                            cacheTime = 0)
                         if (response.code == 200) response.text else null
                     },
                     resolve = { source, referer -> resolve(source, referer, 0) },
@@ -140,18 +155,25 @@ internal class ThaiAnimeProvider(private val site: Site) : MainAPI() {
             try { page(data, 0) } catch (error: Exception) { if (error is CancellationException) throw error }
             if (emitted.isEmpty()) {
                 // Run the real page when its player iframe is created only by JavaScript.
-                // Capture only the observed content HLS route, never generic media/ad requests.
+                // Capture the content iframe before it needs Play, or the observed HLS master.
                 try {
                     val request = WebViewResolver(
-                        interceptUrl = WakuPlayer.manifestPattern,
+                        interceptUrl = WakuPlayer.capturePattern,
                         userAgent = null,
                         useOkhttp = false,
-                        timeout = 15_000L,
+                        timeout = 8_000L,
                     ).resolveUsingWebView(data, referer = "$mainUrl/").first
+                    if (request != null && WakuPlayer.playerPattern.matches(request.url.toString())) {
+                        // An iframe loads before Play; waiting for HLS alone can time out on gesture-gated players.
+                        val target = request.url.toString()
+                        visited.remove(target)
+                        resolve(PlayerSource(target, "ตัวเล่นเว็บ"), request.header("Referer") ?: data, 0)
+                    }
                     request?.let(WakuPlayer::browserStream)?.let { stream ->
                         emit(newExtractorLink(name, "$name - ตัวเล่นเว็บ", stream.url, ExtractorLinkType.M3U8) {
                             referer = stream.referer
-                            headers = stream.headers
+                            headers = stream.headers + ("User-Agent" to WakuPlayer.mediaUserAgent)
+                            extractorData = "waku-nya"
                             quality = Qualities.Unknown.value
                         })
                     }
