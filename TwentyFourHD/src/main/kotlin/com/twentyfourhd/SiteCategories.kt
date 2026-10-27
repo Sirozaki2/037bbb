@@ -62,4 +62,13 @@ internal object SiteCategories {
         "/tag/spider-man" to "Spider Man",
         "/tag/star-wars" to "Star Wars",
     )
+
+    // Cloudstream waits for every home row; keep the initial request set small.
+    val homeEntries = listOf(
+        "" to "ล่าสุด",
+        "/category/%e0%b8%ab%e0%b8%99%e0%b8%b1%e0%b8%87%e0%b9%83%e0%b8%ab%e0%b8%a1%e0%b9%882026" to "หนังใหม่2026",
+        "/category/%e0%b8%8b%e0%b8%b5%e0%b8%a3%e0%b8%b5%e0%b9%88%e0%b8%a2%e0%b9%8c%e0%b9%80%e0%b8%81%e0%b8%b2%e0%b8%ab%e0%b8%a5%e0%b8%b5" to "ซีรี่ย์เกาหลี",
+        "/category/%e0%b8%8b%e0%b8%b5%e0%b8%a3%e0%b8%b5%e0%b9%88%e0%b8%a2%e0%b9%8c%e0%b8%88%e0%b8%b5%e0%b8%99" to "ซีรี่ย์จีน",
+        "/category/thai-movie" to "หนังไทย",
+    )
 }

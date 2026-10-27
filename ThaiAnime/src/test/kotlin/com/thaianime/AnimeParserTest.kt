@@ -27,6 +27,18 @@ internal object Samples {
 }
 
 class AnimeParserTest {
+    @Test fun `published sites exclude retired Seven and keep compact navigable menus`() {
+        assertEquals(listOf(Site.NEKO, Site.RUKA, Site.SUBA), Site.enabled)
+        assertEquals(Site.enabled.toSet(), AnimeCategories.homeEntries.keys)
+        Site.enabled.forEach { site ->
+            val home = AnimeCategories.homeEntries.getValue(site)
+            assertTrue(home.isNotEmpty())
+            if (site != Site.SUBA) assertTrue(home.size <= 6)
+            assertTrue(AnimeCategories.entries.getValue(site).containsAll(home))
+        }
+        assertEquals(AnimeCategories.entries.getValue(Site.SUBA), AnimeCategories.homeEntries.getValue(Site.SUBA))
+    }
+
     @Test fun `all four home layouts exclude ads and return unique content links`() {
         val counts = mapOf(Site.NEKO to 24, Site.RUKA to 32, Site.SEVEN to 40, Site.SUBA to 36)
         counts.forEach { (site, count) ->

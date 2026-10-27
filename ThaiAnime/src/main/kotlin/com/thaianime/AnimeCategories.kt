@@ -55,4 +55,10 @@ internal object AnimeCategories {
             "/Anime%E0%B8%97%E0%B8%B1%E0%B9%89%E0%B8%87%E0%B8%AB%E0%B8%A1%E0%B8%94" to "อนิเมะทั้งหมด",
         ),
     )
+    // Preserve Suba's existing compact menu; other sites use their primary sections.
+    val homeEntries = mapOf(
+        Site.NEKO to entries.getValue(Site.NEKO).take(4),
+        Site.RUKA to entries.getValue(Site.RUKA).take(5),
+        Site.SUBA to entries.getValue(Site.SUBA),
+    )
 }

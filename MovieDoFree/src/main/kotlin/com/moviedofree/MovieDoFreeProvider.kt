@@ -23,7 +23,7 @@ class MovieDoFreeProvider : MainAPI() {
     override val supportedTypes = setOf(TvType.Movie)
     override var sequentialMainPage = false
     private val listingRequests = Semaphore(3)
-    override val mainPage = SiteCategories.entries.map { (path, title) -> mainPage(mainUrl + path, title) }
+    override val mainPage = SiteCategories.homeEntries.map { (path, title) -> mainPage(mainUrl + path, title) }
 
     private fun MovieCard.response(): SearchResponse = newMovieSearchResponse(title, url, TvType.Movie) { posterUrl = poster; posterHeaders = mapOf("Referer" to "$mainUrl/") }
 

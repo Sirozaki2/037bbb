@@ -24,7 +24,7 @@ class AHDZeroProvider : MainAPI() {
     override val supportedTypes = setOf(TvType.Anime, TvType.AnimeMovie)
     override var sequentialMainPage = false
     private val listingRequests = Semaphore(3)
-    override val mainPage = SiteCategories.entries.map { (path, title) -> mainPage(mainUrl + path, title) }
+    override val mainPage = SiteCategories.homeEntries.map { (path, title) -> mainPage(mainUrl + path, title) }
     private val cloudflare by lazy { CloudflareKiller() }
     private suspend fun document(url: String, fresh: Boolean = false): org.jsoup.nodes.Document {
         val response = if (fresh) app.get(url, interceptor = cloudflare, cacheTime = 0) else app.get(url, interceptor = cloudflare)

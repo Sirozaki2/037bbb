@@ -20,7 +20,7 @@ class ExampleProvider : MainAPI() {
 
     override var sequentialMainPage = true
     override var sequentialMainPageDelay = 100L
-    override val mainPage = SiteCategories.entries.map { (path, title) -> mainPage(mainUrl + path, title) }
+    override val mainPage = SiteCategories.homeEntries.map { (path, title) -> mainPage(mainUrl + path, title) }
 
     override suspend fun getMainPage(
         page: Int,

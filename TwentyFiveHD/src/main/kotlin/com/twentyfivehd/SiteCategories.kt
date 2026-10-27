@@ -169,4 +169,13 @@ internal object SiteCategories {
         "/category/หนังไต้หวัน" to "หนังไต้หวัน",
         "/category/หนังไนจีเรีย" to "หนังไนจีเรีย"
     )
+
+    // Cloudstream waits for every home row; keep the initial request set small.
+    val homeEntries = listOf(
+        "/" to "อัปเดตล่าสุด",
+        "/category/ดูหนัง" to "ดูหนังใหม่",
+        "/category/หนังไทย" to "ดูหนังไทยออนไลน์",
+        "/category/ซีรี่ส์-netflix" to "ดูซีรี่ส์ Netflix",
+        "/category/ซีรี่ส์เกาหลี" to "ซีรี่ส์เกาหลี",
+    )
 }

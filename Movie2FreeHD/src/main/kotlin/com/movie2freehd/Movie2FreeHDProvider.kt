@@ -25,7 +25,7 @@ class Movie2FreeHDProvider : MainAPI() {
     override val supportedTypes = setOf(TvType.Movie, TvType.TvSeries)
     override var sequentialMainPage = false
     private val listingRequests = Semaphore(3)
-    override val mainPage = SiteCategories.entries.map { (path, title) -> mainPage(mainUrl + path, title) }
+    override val mainPage = SiteCategories.homeEntries.map { (path, title) -> mainPage(mainUrl + path, title) }
     private val cloudflare by lazy { CloudflareKiller() }
 
     private suspend fun document(url: String, fresh: Boolean = false): org.jsoup.nodes.Document {

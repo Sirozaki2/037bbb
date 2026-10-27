@@ -46,4 +46,12 @@ internal object SiteCategories {
         "/genre/thriller" to "ทริลเลอร์",
         "/genre/time-travel" to "ย้อนเวลา",
     )
+
+    // Cloudstream waits for every home row; keep the initial request set small.
+    val homeEntries = listOf(
+        "" to "ล่าสุด",
+        "/category/1" to "ซับไทย",
+        "/category/2" to "พากย์ไทย",
+        "/category/3" to "เดอะมูฟวี่",
+    )
 }

@@ -22,7 +22,7 @@ class TwentyFiveHDProvider : MainAPI() {
     override val supportedTypes = setOf(TvType.Movie, TvType.TvSeries)
     override var sequentialMainPage = true
     override var sequentialMainPageDelay = 100L
-    override val mainPage = SiteCategories.entries.map { (path, title) -> mainPage(mainUrl + path, title) }
+    override val mainPage = SiteCategories.homeEntries.map { (path, title) -> mainPage(mainUrl + path, title) }
 
     private fun MovieCard.response(): SearchResponse = if (series) {
         newTvSeriesSearchResponse(title, url, TvType.TvSeries) { posterUrl = poster }

@@ -1,7 +1,7 @@
-version = 3
+version = 4
 cloudstream {
     language = "th"
-    description = "Neko-Miku, AnimeRuka, AnimeSeven และ Suba-Anime (ทดลอง: การเล่นขึ้นกับโฮสต์วิดีโอ)"
+    description = "Neko-Miku, AnimeRuka และ Suba-Anime (ทดลอง: การเล่นขึ้นกับโฮสต์วิดีโอ)"
     authors = listOf("jasdwa22")
     status = 3
     tvTypes = listOf("Anime", "AnimeMovie")

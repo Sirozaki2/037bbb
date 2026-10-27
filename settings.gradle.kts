@@ -19,7 +19,8 @@ include(":ExampleProvider")
 // This file sets what projects are included.
 // All new projects should get automatically included unless specified in the "disabled" variable.
 
-val disabled = listOf<String>()
+// Retired providers: keep source/fixtures for reference, omit from published plugins.
+val disabled = listOf("Movie2Free", "FWIPTV")
 
 File(rootDir, ".").eachDir { dir ->
     if (!disabled.contains(dir.name) && File(dir, "build.gradle.kts").exists()) {

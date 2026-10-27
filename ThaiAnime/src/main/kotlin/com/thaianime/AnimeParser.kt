@@ -10,7 +10,11 @@ internal enum class Site(val base: String, val label: String) {
     NEKO("https://nekomiku.net", "Neko-Miku"),
     RUKA("https://animeruka.com", "AnimeRuka"),
     SEVEN("https://www.anime-seven.com", "AnimeSeven"),
-    SUBA("https://suba-anime.com", "Suba-Anime")
+    SUBA("https://suba-anime.com", "Suba-Anime");
+
+    companion object {
+        val enabled = listOf(NEKO, RUKA, SUBA)
+    }
 }
 internal data class AnimeCard(val title: String, val url: String, val poster: String?, val movie: Boolean)
 internal data class AnimeEpisode(val title: String, val url: String, val number: Int?, val season: Int?, val dubbed: Boolean)

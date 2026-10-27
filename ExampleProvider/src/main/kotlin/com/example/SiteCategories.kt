@@ -56,4 +56,13 @@ internal object SiteCategories {
         "/category/detective-conan-movie-โคนัน-เดอะมูฟวี่-1-20" to "โคนัน เดอะมูฟวี่ 1-23 ทุกภาค Detective Conan Movie",
         "/category/uncategorized" to "ไม่มีหมวดหมู่"
     )
+
+    // Cloudstream waits for every home row; keep the initial request set small.
+    val homeEntries = listOf(
+        "/" to "หนังมาใหม่",
+        "/category/ดูหนังใหม่ชนโรง" to "หนังใหม่ชนโรง",
+        "/series-all/ดูซีรีย์ออนไลน์" to "ซีรีย์ออนไลน์",
+        "/category/หนังไทย" to "หนังไทย",
+        "/category/ดูหนัง-การ์ตูน" to "ดูหนังออนไลน์ การ์ตูน HD ฟรี",
+    )
 }
