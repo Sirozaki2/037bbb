@@ -1,0 +1,43 @@
+package com.example
+
+import org.jsoup.nodes.Document
+import java.net.URI
+
+internal data class MovieListing(val title: String, val url: String, val posterUrl: String?) {
+    val isSeries: Boolean
+        get() = URI(url).path.startsWith("/series/") ||
+            title.contains("ตอนที่", true) || title.contains("EP.", true) ||
+            title.contains("Season", true)
+}
+
+internal object MovieListingParser {
+    fun pageUrl(baseUrl: String, page: Int): String =
+        if (page == 1) "${baseUrl.trimEnd('/')}/" else "${baseUrl.trimEnd('/')}/page/$page/"
+
+    fun parse(document: Document): List<MovieListing> = document.select(
+        "div.moviefilm, div.postbox, article, div.movie-box, div.item, div.col-movie"
+    ).mapNotNull { card ->
+        val anchor = card.selectFirst(".movief a[href]") ?: card.selectFirst("a[href]")
+            ?: return@mapNotNull null
+        val url = anchor.absUrl("href").takeIf { it.isHttpUrl() } ?: return@mapNotNull null
+        val image = card.selectFirst("img")
+        // The image link has no title, and the first paragraph contains the IMDb score.
+        val title = card.selectFirst(".movief a, h2, h3, .title, .movie-title")?.text().orEmpty()
+            .ifBlank { anchor.attr("title") }
+            .ifBlank { image?.attr("alt").orEmpty() }
+            .ifBlank { card.selectFirst("p")?.text().orEmpty() }.trim()
+        if (title.isBlank()) return@mapNotNull null
+        val poster = image?.let { img ->
+            sequenceOf("data-src", "data-lazy-src", "src")
+                .filter { img.attr(it).isNotBlank() }
+                .map { img.absUrl(it) }.firstOrNull { it.isHttpUrl() }
+        }
+        MovieListing(title, url, poster)
+    }.distinctBy { it.url }
+
+    fun hasNextPage(document: Document): Boolean = document.select(
+        "link[rel=next][href], a[rel=next][href], a.nextpostslink[href]"
+    ).any { it.absUrl("href").isHttpUrl() && it.attr("href") != "#" }
+
+    private fun String.isHttpUrl(): Boolean = startsWith("https://") || startsWith("http://")
+}

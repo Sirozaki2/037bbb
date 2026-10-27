@@ -1,0 +1,67 @@
+package com.ahdzero
+
+import android.content.Context
+import com.lagradost.cloudstream3.*
+import com.lagradost.cloudstream3.network.CloudflareKiller
+import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
+import com.lagradost.cloudstream3.plugins.Plugin
+import com.lagradost.cloudstream3.utils.*
+import java.net.URLEncoder
+
+@CloudstreamPlugin
+class AHDZeroPlugin : Plugin() {
+    override fun load(context: Context) { registerMainAPI(AHDZeroProvider()) }
+}
+
+class AHDZeroProvider : MainAPI() {
+    override var mainUrl = "https://ahdzero.com"
+    override var name = "AHDZero"
+    override var lang = "th"
+    override val hasMainPage = true
+    override val hasDownloadSupport = true
+    override val supportedTypes = setOf(TvType.Anime, TvType.AnimeMovie)
+    override var sequentialMainPage = true
+    override var sequentialMainPageDelay = 100L
+    override val mainPage = SiteCategories.entries.map { (path, title) -> mainPage(mainUrl + path, title) }
+    private val cloudflare by lazy { CloudflareKiller() }
+    private suspend fun document(url: String): org.jsoup.nodes.Document {
+        val response = app.get(url, interceptor = cloudflare, cacheTime = 0)
+        if (response.code !in 200..299) throw ErrorLoadingException("เว็บปฏิเสธการเข้าถึง (HTTP ${response.code})")
+        return response.document.apply { setBaseUri(response.url) }
+    }
+
+    private suspend fun AnimeCard.response(): SearchResponse = newAnimeSearchResponse(title, url, if (movie) TvType.AnimeMovie else TvType.Anime) {
+        posterUrl = poster; posterHeaders = mapOf("Referer" to "$mainUrl/")
+        addDubStatus(title.contains("พากย์ไทย"))
+    }
+
+    override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
+        val doc = document(AHDZeroParser.pageUrl(request.data, page))
+        return newHomePageResponse(listOf(HomePageList(request.name, AHDZeroParser.cards(doc).map { it.response() })), AHDZeroParser.hasNext(doc, page))
+    }
+
+    override suspend fun search(query: String): List<SearchResponse> = AHDZeroParser.cards(document("$mainUrl/search/results?q=${URLEncoder.encode(query, "UTF-8")}")).map { it.response() }
+
+    override suspend fun load(url: String): LoadResponse {
+        val detail = AHDZeroParser.detail(document(url))
+        if (detail.movie) {
+            val episode = detail.episodes.firstOrNull() ?: throw ErrorLoadingException("ยังไม่มีตอนให้รับชม")
+            return newMovieLoadResponse(detail.title, url, TvType.AnimeMovie, episode.url) {
+                posterUrl = detail.poster; posterHeaders = mapOf("Referer" to url); plot = detail.plot
+            }
+        }
+        return newAnimeLoadResponse(detail.title, url, TvType.Anime) {
+            posterUrl = detail.poster; posterHeaders = mapOf("Referer" to url); plot = detail.plot
+            addEpisodes(if (detail.title.contains("พากย์ไทย")) DubStatus.Dubbed else DubStatus.Subbed,
+                detail.episodes.map { ep -> newEpisode(ep.url) { name = ep.title; episode = ep.number } })
+        }
+    }
+
+    override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
+        val embed = AHDZeroParser.embed(document(data)) ?: return false
+        val player = app.get(embed, referer = data, cacheTime = 0)
+        val stream = AHDZeroParser.stream(player.document.apply { setBaseUri(player.url) }) ?: return false
+        callback(newExtractorLink(name, name, stream, ExtractorLinkType.M3U8) { referer = player.url; quality = Qualities.Unknown.value })
+        return true
+    }
+}

@@ -1,3 +1,45 @@
+## ปลั๊กอินสำหรับ Cloudstream
+
+เพิ่ม repository ด้วย `https://raw.githubusercontent.com/popo0606/037/master/repo.json`
+แล้วติดตั้งปลั๊กอินที่ต้องการจากรายการส่วนขยาย:
+
+| ปลั๊กอิน | ชื่อแหล่งในแอป | รองรับ |
+| --- | --- | --- |
+| ExampleProvider | 037-HDD | หนังและซีรีส์ |
+| TwentyFiveHD | 25-HD | หนัง ค้นหา ซีซันและตอนที่เว็บมีลิงก์แล้ว |
+| MovieDoFree | Moviedofree | หนังและค้นหา |
+| AHDZero | AHDZero | อนิเมะ ซีรีส์และเดอะมูฟวี่ พากย์ไทย/ซับไทย |
+| TwentyFourHD | 24HD | หนังและซีรีส์ แยกตอนตามลิงก์ที่มีจริง |
+
+แต่ละเว็บติดตั้งแยกกันได้ สำหรับ 25-HD วิดีโอบางรายการรวมหลายเสียงและคำบรรยายไว้ในลิงก์เดียว
+ให้เลือกแทร็กเสียงและคำบรรยายในเครื่องเล่น ความพร้อมของวิดีโอขึ้นอยู่กับเว็บต้นทาง
+
+เวอร์ชัน 037-HDD v7, 25-HD v2 และ Moviedofree v2 เพิ่มหมวดหมู่ตามเมนูของแต่ละเว็บ
+รวมประเภท ประเทศ ผู้ให้บริการ และปีที่เว็บแสดง เลือกหมวดที่ต้องการในตัวกรองหน้าแรกได้
+บางหมวดอาจว่างตามเว็บต้นทาง
+
+25-HD v2 อ่านเส้นทาง CDN จาก HLS content steering เพื่อโหลดชิ้นส่วนวิดีโอ เสียง และซับ
+ยังคงใช้ master playlist เดิมเพื่อให้เลือกแทร็กเสียงและคำบรรยายในเครื่องเล่นได้
+Moviedofree v2 เพิ่ม Referer สำหรับรูป รองรับรูป lazy-load และแก้การเปลี่ยนหน้าของหมวดปี
+
+AHDZero v1 และ 24HD v1 อ่านหมวดหมู่และตอนจาก HTML ตัวอย่างใน `samples/`
+AHDZero มีหมวดซับไทย พากย์ไทย เดอะมูฟวี่ และ genre; 24HD มีประเภทและชุดหนังตาม tag
+24HD อ่านรูปปกจาก CSS รวมรูปที่เว็บซ่อนด้วย lazy-load และใช้ลิงก์เปลี่ยนหน้าของรายการหลัก
+ทั้งสองใช้ CloudflareKiller ของ Cloudstream เมื่อเว็บส่ง challenge แต่ยังต้องทดสอบบนเครื่องจริง
+การตรวจใน sandbox ยืนยันตัวอ่าน HTML และไฟล์สตรีมตัวอย่าง ไม่ยืนยันว่า Cloudflare ผ่านทุกเครื่อง
+
+FWIP และ Movie2Free ยังไม่รวมในแพ็กเกจ: FWIP ส่งต่อไปตัวเล่นที่ sandbox เข้าไม่ได้
+ส่วน Movie2Free ตัวอย่างอ้าง `movie_files/saved_resource.html` ซึ่งยังไม่ได้แนบ
+ต้องมี HTML/URL ของตัวเล่นเพิ่มก่อนตรวจและเผยแพร่
+`movie2freehd.com` เปิดรายการและ API ตัวเล่นได้ แต่ตัวเล่นตัวอย่างส่งต่อไปหน้า `blocked`
+บางเรื่องไม่มีตัวเลือกตัวเล่น จึงยังไม่เพิ่มเป็นปลั๊กอินที่อ้างว่าดูได้
+
+ทดสอบปลั๊กอินใหม่ด้วย `./gradlew :AHDZero:testDebugUnitTest :TwentyFourHD:testDebugUnitTest`
+(ใช้ไฟล์ HTML ใน `samples/` โดยไม่อ่าน `temp`)
+และสร้างแพ็กเกจด้วย `./gradlew make makePluginsJson`
+
+---
+
 **⚠️ This is currently under development, dont use it yet if you're not comfortable with constantly merging new changes**
 
 # `Cloudstream3 Plugin Repo Template`

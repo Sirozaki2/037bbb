@@ -1,0 +1,8 @@
+{
+  "name": "037-HDD",
+  "description": "037-HDD Cloudstream plugins",
+  "manifestVersion": 1,
+  "pluginLists": [
+    "https://raw.githubusercontent.com/popo0606/037/builds/plugins.json"
+  ]
+}

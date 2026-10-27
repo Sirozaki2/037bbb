@@ -1,21 +1,162 @@
 package com.example
 
-import com.lagradost.cloudstream3.MainAPI
-import com.lagradost.cloudstream3.SearchResponse
-import com.lagradost.cloudstream3.TvType
+import com.lagradost.cloudstream3.*
+import com.lagradost.cloudstream3.utils.*
+import java.net.URLEncoder
+import kotlin.coroutines.cancellation.CancellationException
 
-class ExampleProvider : MainAPI() { // All providers must be an instance of MainAPI
-    override var mainUrl = "https://example.com/" 
-    override var name = "Example provider"
-    override val supportedTypes = setOf(TvType.Movie)
-
-    override var lang = "en"
-
-    // Enable this when your provider has a main page
+class ExampleProvider : MainAPI() {
+    override var mainUrl = "https://www.037-hdd.com"
+    override var name = "037-HDD"
     override val hasMainPage = true
+    override var lang = "th"
+    override val hasDownloadSupport = true
 
-    // This function gets called when you search for something
+    override val supportedTypes = setOf(
+        TvType.Movie,
+        TvType.TvSeries,
+        TvType.Anime
+    )
+
+    override var sequentialMainPage = true
+    override var sequentialMainPageDelay = 100L
+    override val mainPage = SiteCategories.entries.map { (path, title) -> mainPage(mainUrl + path, title) }
+
+    override suspend fun getMainPage(
+        page: Int,
+        request: MainPageRequest
+    ): HomePageResponse {
+        val url = MovieListingParser.pageUrl(request.data, page)
+        val document = app.get(url).document.apply { setBaseUri(url) }
+        val home = MovieListingParser.parse(document).map { it.toSearchResult() }
+
+        return newHomePageResponse(
+            list = HomePageList(
+                name = request.name,
+                list = home,
+                isHorizontalImages = false
+            ),
+            hasNext = MovieListingParser.hasNextPage(document)
+        )
+    }
+
+    private fun MovieListing.toSearchResult(): SearchResponse {
+        return if (isSeries) {
+            newTvSeriesSearchResponse(title, url, TvType.TvSeries) {
+                this.posterUrl = this@toSearchResult.posterUrl
+            }
+        } else {
+            newMovieSearchResponse(title, url, TvType.Movie) {
+                this.posterUrl = this@toSearchResult.posterUrl
+            }
+        }
+    }
+
     override suspend fun search(query: String): List<SearchResponse> {
-        return listOf()
+        val url = "$mainUrl/?s=${URLEncoder.encode(query, "UTF-8")}"
+        val document = app.get(url).document.apply { setBaseUri(url) }
+        return MovieListingParser.parse(document).map { it.toSearchResult() }
+    }
+
+    override suspend fun load(url: String): LoadResponse {
+        val document = app.get(url).document.apply { setBaseUri(url) }
+
+        val details = MovieDetailsParser.parse(document)
+        val title = details.title
+        val poster = details.posterUrl
+        val plot = details.plot
+        val tags = document.select("a[rel=category tag], .genre a").map { it.text().trim() }
+
+        val episodes = SeriesEpisodeParser.parse(document, title).map { episode ->
+            newEpisode(episode.url) {
+                this.name = episode.name
+                this.episode = episode.number
+                this.season = episode.season
+            }
+        }
+        if (episodes.isNotEmpty()) {
+            return newTvSeriesLoadResponse(title, url, TvType.TvSeries, episodes) {
+                this.posterUrl = fixUrlNull(poster)
+                this.plot = plot
+                this.tags = tags
+            }
+        }
+
+        return newMovieLoadResponse(title, url, TvType.Movie, url) {
+            this.posterUrl = fixUrlNull(poster)
+            this.plot = plot
+            this.tags = tags
+        }
+    }
+
+    override suspend fun loadLinks(
+        data: String,
+        isCasting: Boolean,
+        subtitleCallback: (SubtitleFile) -> Unit,
+        callback: (ExtractorLink) -> Unit
+    ): Boolean {
+        // Tickets and player contexts expire, so request a fresh detail page for each play.
+        val doc = app.get(data, cacheTime = 0).document.apply { setBaseUri(data) }
+        val playerUrls = MoviePlayerParser.parse(doc).toMutableList()
+        Regex("""(https?://[a-zA-Z0-9.-]*streamhls[a-zA-Z0-9.-]*/[^\s"'<>]+)""")
+            .findAll(doc.html()).forEach {
+                playerUrls.add(MoviePlayer("StreamHLS", it.groupValues[1].replace("\\/", "/")))
+            }
+
+        val resolver = StreamHlsResolver(
+            get = { url, referer ->
+                val response = app.get(url, referer = referer, cacheTime = 0)
+                PlayerPage(response.url, response.text)
+            },
+            post = { url, referer, payload ->
+                val response = app.post(
+                    url,
+                    referer = referer,
+                    headers = mapOf(
+                        "Origin" to StreamHlsResolver.origin(referer),
+                        "X-Requested-With" to "XMLHttpRequest"
+                    ),
+                    json = payload,
+                    cacheTime = 0
+                )
+                PlayerPage(response.url, response.text)
+            }
+        )
+        var found = false
+        val emitted = mutableSetOf<String>()
+        val emit: (ExtractorLink) -> Unit = { link ->
+            if (emitted.add(StreamHlsResolver.streamKey(link.url))) {
+                found = true
+                callback(link)
+            }
+        }
+        for (player in playerUrls.distinctBy { it.url }) {
+            val iframeUrl = player.url
+            val streams = try {
+                resolver.resolve(iframeUrl, data)
+            } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                emptyList()
+            }
+            for (stream in streams) {
+                emit(newExtractorLink(
+                    source = name,
+                    name = "${MoviePlayerParser.sourceLabel(player, stream.label)} - $name",
+                    url = stream.url,
+                    type = ExtractorLinkType.M3U8
+                ) {
+                    this.referer = stream.referer
+                    this.headers = mapOf(
+                        "Origin" to StreamHlsResolver.origin(stream.referer),
+                        "Referer" to stream.referer
+                    )
+                    this.quality = Qualities.Unknown.value
+                })
+            }
+            if (streams.isEmpty()) {
+                loadExtractor(iframeUrl, data, subtitleCallback, emit)
+            }
+        }
+        return found
     }
 }

@@ -1,4 +1,20 @@
+pluginManagement {
+    buildscript {
+        repositories {
+            google()
+            mavenCentral()
+        }
+        dependencies {
+            // Kotlin 2.4 metadata requires D8/R8 9.1.29 or newer.
+            // Load it before AGP's bundled D8/R8, following R8's override guidance.
+            classpath("com.android.tools:r8:9.1.31")
+        }
+    }
+}
+
 rootProject.name = "CloudstreamPlugins"
+
+include(":ExampleProvider")
 
 // This file sets what projects are included.
 // All new projects should get automatically included unless specified in the "disabled" variable.
