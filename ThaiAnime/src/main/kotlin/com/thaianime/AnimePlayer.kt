@@ -22,12 +22,20 @@ internal object AnimePlayer {
         return doc.select(".dooplay_player_option[data-post][data-nume][data-type]").mapNotNull { el ->
             val post = el.attr("data-post"); val num = el.attr("data-nume"); val type = el.attr("data-type")
             if (!post.matches(Regex("\\d+")) || !num.matches(Regex("\\d+")) || type !in listOf("tv", "movie")) null
-            else PlayerOption("${api.trimEnd('/')}/$post/$type/$num" + if (version.matches(Regex("[a-zA-Z0-9]+"))) "?v=$version" else "", el.selectFirst(".title")?.text().orEmpty())
+            else {
+                // Waku's front.ajax.js uses a post ID plus query parameters, unlike Ruka v2.
+                val endpoint = if (URI(doc.baseUri()).host == "anime-waku.com")
+                    "${api.trimEnd('/')}/$post?type=$type&source=$num"
+                else "${api.trimEnd('/')}/$post/$type/$num" + if (version.matches(Regex("[a-zA-Z0-9]+"))) "?v=$version" else ""
+                PlayerOption(endpoint, el.selectFirst(".title")?.text().orEmpty())
+            }
         }
     }
     fun ajaxEmbed(text: String, base: String): String? {
         val value = runCatching { json.readTree(text).path("embed_url").asText() }.getOrNull() ?: return null
-        return AnimeParser.url(base, value) ?: org.jsoup.Jsoup.parse(value, base).selectFirst("iframe[src]")?.let { AnimeParser.url(base, it.attr("src")) }
+        return if (value.trimStart().startsWith("<")) {
+            org.jsoup.Jsoup.parse(value, base).selectFirst("iframe[src]")?.let { AnimeParser.url(base, it.attr("src")) }
+        } else AnimeParser.url(base, value)
     }
     fun sources(site: Site, doc: Document): List<PlayerSource> {
         val result = mutableListOf<PlayerSource>()
