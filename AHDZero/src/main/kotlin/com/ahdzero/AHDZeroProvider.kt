@@ -1,6 +1,8 @@
 package com.ahdzero
 
 import android.content.Context
+import com.providers.network.ProviderBrowser
+import com.providers.network.withBrowserFallback
 import com.lagradost.cloudstream3.*
 import com.providers.network.CloudflareSession
 import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
@@ -12,7 +14,11 @@ import kotlinx.coroutines.sync.withPermit
 
 @CloudstreamPlugin
 class AHDZeroPlugin : Plugin() {
-    override fun load(context: Context) { registerMainAPI(AHDZeroProvider()) }
+    override fun load(context: Context) {
+        val provider = AHDZeroProvider()
+        registerMainAPI(provider)
+        ProviderBrowser.install(this, listOf(provider.name to provider.mainUrl))
+    }
 }
 
 class AHDZeroProvider : MainAPI() {
@@ -59,7 +65,10 @@ class AHDZeroProvider : MainAPI() {
         }
     }
 
-    override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
+    override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean =
+        withBrowserFallback(data, callback) { emit -> loadVideoLinks(data, isCasting, subtitleCallback, emit) }
+
+    private suspend fun loadVideoLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
         val embed = AHDZeroParser.embed(document(data, fresh = true)) ?: return false
         val player = app.get(embed, referer = data, interceptor = cloudflare, cacheTime = 0)
         val stream = AHDZeroParser.stream(player.document.apply { setBaseUri(player.url) }) ?: return false

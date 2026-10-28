@@ -1,6 +1,8 @@
 package com.thaianime
 
 import android.content.Context
+import com.providers.network.ProviderBrowser
+import com.providers.network.withBrowserFallback
 import com.lagradost.cloudstream3.*
 import com.providers.network.CloudflareSession
 import com.lagradost.cloudstream3.network.WebViewResolver
@@ -17,6 +19,7 @@ internal object AnimeNetwork {
 class ThaiAnimePlugin : Plugin() {
     override fun load(context: Context) {
         Site.enabled.forEach { registerMainAPI(ThaiAnimeProvider(it)) }
+        ProviderBrowser.install(this, Site.entries.map { (it.label + if (it in Site.enabled) "" else " (ปิดไว้: เปิดเว็บเท่านั้น)") to it.base })
     }
 }
 
@@ -72,7 +75,10 @@ internal class ThaiAnimeProvider(private val site: Site) : MainAPI() {
         val host = runCatching { java.net.URI(extractorLink.url).host }.getOrNull() ?: return null
         return AnimeMamiInterceptor(host, cloudflare)
     }
-    override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
+    override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean =
+        withBrowserFallback(data, callback) { emit -> loadVideoLinks(data, isCasting, subtitleCallback, emit) }
+
+    private suspend fun loadVideoLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
         val visited = mutableSetOf<String>()
         val emitted = mutableSetOf<String>()
         var playbackFailure: String? = null

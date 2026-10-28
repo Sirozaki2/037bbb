@@ -1,6 +1,8 @@
 package com.twentyfivehd
 
 import android.content.Context
+import com.providers.network.ProviderBrowser
+import com.providers.network.withBrowserFallback
 import com.lagradost.cloudstream3.*
 import com.providers.network.CloudflareSession
 import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
@@ -11,7 +13,11 @@ import kotlin.coroutines.cancellation.CancellationException
 
 @CloudstreamPlugin
 class TwentyFiveHDPlugin : Plugin() {
-    override fun load(context: Context) { registerMainAPI(TwentyFiveHDProvider()) }
+    override fun load(context: Context) {
+        val provider = TwentyFiveHDProvider()
+        registerMainAPI(provider)
+        ProviderBrowser.install(this, listOf(provider.name to provider.mainUrl))
+    }
 }
 
 class TwentyFiveHDProvider : MainAPI() {
@@ -54,13 +60,13 @@ class TwentyFiveHDProvider : MainAPI() {
         val bootstrap = ZmdbResolver.bootstrap(app.get(detail.embed, referer = url, interceptor = cloudflare, cacheTime = 0).text)
         if (bootstrap.path("content").path("mediaType").asText() == "tv") {
             val episodes = ZmdbResolver.episodes(bootstrap, detail.embed).map {
-                newEpisode(it.url) { name = it.name; season = it.season; episode = it.number }
+                newEpisode(PlaybackContext(it.url, url).encode()) { name = it.name; season = it.season; episode = it.number }
             }
             return newTvSeriesLoadResponse(detail.title, url, TvType.TvSeries, episodes) {
                 posterUrl = detail.poster; plot = detail.plot; tags = detail.tags
             }
         }
-        return newMovieLoadResponse(detail.title, url, TvType.Movie, detail.embed) {
+        return newMovieLoadResponse(detail.title, url, TvType.Movie, PlaybackContext(detail.embed, url).encode()) {
             posterUrl = detail.poster; plot = detail.plot; tags = detail.tags
         }
     }
@@ -68,14 +74,18 @@ class TwentyFiveHDProvider : MainAPI() {
     override fun getVideoInterceptor(extractorLink: ExtractorLink): okhttp3.Interceptor? =
         HlsRouting.decode(extractorLink.extractorData)?.let { HlsRoutingInterceptor(it) }
 
-    override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
+    override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean =
+        withBrowserFallback(PlaybackContext.decode(data).page, callback) { emit -> loadVideoLinks(data, isCasting, subtitleCallback, emit) }
+
+    private suspend fun loadVideoLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
         val resolver = ZmdbResolver { url, referer, headers ->
             val response = app.get(url, referer = referer, headers = headers, interceptor = cloudflare, cacheTime = 0)
             WebPage(response.url, response.text, response.code)
         }
         var found = false
         val emit: (ExtractorLink) -> Unit = { found = true; callback(it) }
-        for (stream in resolver.resolve(data, "$mainUrl/")) {
+        val playback = PlaybackContext.decode(data)
+        for (stream in resolver.resolve(playback.player, "$mainUrl/")) {
             try {
                 if (stream.hls) {
                     // Steering is optional. A failed steering request must not discard a playable master.

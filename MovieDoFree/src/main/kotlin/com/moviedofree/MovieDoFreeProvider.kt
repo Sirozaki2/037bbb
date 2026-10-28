@@ -1,6 +1,8 @@
 package com.moviedofree
 
 import android.content.Context
+import com.providers.network.ProviderBrowser
+import com.providers.network.withBrowserFallback
 import com.lagradost.cloudstream3.*
 import com.providers.network.CloudflareSession
 import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
@@ -12,7 +14,11 @@ import kotlinx.coroutines.sync.withPermit
 
 @CloudstreamPlugin
 class MovieDoFreePlugin : Plugin() {
-    override fun load(context: Context) { registerMainAPI(MovieDoFreeProvider()) }
+    override fun load(context: Context) {
+        val provider = MovieDoFreeProvider()
+        registerMainAPI(provider)
+        ProviderBrowser.install(this, listOf(provider.name to provider.mainUrl))
+    }
 }
 
 class MovieDoFreeProvider : MainAPI() {
@@ -54,7 +60,10 @@ class MovieDoFreeProvider : MainAPI() {
         }
     }
 
-    override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
+    override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean =
+        withBrowserFallback(data, callback) { emit -> loadVideoLinks(data, isCasting, subtitleCallback, emit) }
+
+    private suspend fun loadVideoLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
         val detail = MovieDoFreeParser.detail(document(data, fresh = true))
         val player = app.get(detail.player, referer = data, interceptor = cloudflare, cacheTime = 0)
         val streams = MovieDoFreeParser.streams(player.text, player.url)

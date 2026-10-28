@@ -1,6 +1,8 @@
 package com.movie2freehd
 
 import android.content.Context
+import com.providers.network.ProviderBrowser
+import com.providers.network.withBrowserFallback
 import com.lagradost.cloudstream3.*
 import com.providers.network.CloudflareSession
 import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
@@ -13,7 +15,11 @@ import kotlin.coroutines.cancellation.CancellationException
 
 @CloudstreamPlugin
 class Movie2FreeHDPlugin : Plugin() {
-    override fun load(context: Context) { registerMainAPI(Movie2FreeHDProvider()) }
+    override fun load(context: Context) {
+        val provider = Movie2FreeHDProvider()
+        registerMainAPI(provider)
+        ProviderBrowser.install(this, listOf(provider.name to provider.mainUrl))
+    }
 }
 
 class Movie2FreeHDProvider : MainAPI() {
@@ -58,7 +64,10 @@ class Movie2FreeHDProvider : MainAPI() {
     override fun getVideoInterceptor(extractorLink: ExtractorLink): okhttp3.Interceptor? =
         MeeRouting.decode(extractorLink.extractorData)?.let { MeeRoutingInterceptor(it) }
 
-    override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
+    override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean =
+        withBrowserFallback(data.substringBefore('#'), callback) { emit -> loadVideoLinks(data, isCasting, subtitleCallback, emit) }
+
+    private suspend fun loadVideoLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
         val pageUrl = data.substringBefore('#')
         val doc = document(pageUrl, fresh = true)
         val episode = Regex("^season=(\\d+)&episode=(\\d+)$").matchEntire(data.substringAfter('#', ""))

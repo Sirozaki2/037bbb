@@ -26,6 +26,9 @@ internal class CloudflareSession(
             ).resolveUsingWebView(url) { cleared() }
         }
     },
+    private val interactive: (String, () -> Boolean) -> Boolean = { url, cleared ->
+        runBlocking { ProviderBrowser.verify(url, cleared) }
+    },
 ) : Interceptor {
     private class HostState {
         var retryAfter = 0L
@@ -73,15 +76,39 @@ internal class CloudflareSession(
                 }
             } catch (error: Exception) {
                 if (error is java.util.concurrent.CancellationException) {
+                    state.retryAfter = clock() + 30_000L
                     response.close()
                     throw error
                 }
                 // Devices without a working WebView still receive the original HTTP error.
             }
             val after = clearance(cookies(original.url.toString()))
-            if (after != null && after != before) {
+            // On a cold app start the persisted cookie may be valid, while the WebView UA
+            // is not known until the hidden browser starts. Retry that new context too.
+            val agentChanged = userAgent()?.let { it != response.request.header("User-Agent") } == true
+            if (after != null && (after != before || agentChanged)) {
                 response.close()
                 response = chain.proceed(withCookies(original))
+            }
+            if (isChallenge(response)) {
+                val beforeInteractive = clearance(cookies(original.url.toString()))
+                val verified = try {
+                    interactive(original.url.toString()) {
+                        val value = clearance(cookies(original.url.toString()))
+                        value != null && value != beforeInteractive
+                    }
+                } catch (error: Exception) {
+                    if (error is java.util.concurrent.CancellationException) {
+                        state.retryAfter = clock() + 30_000L
+                        response.close()
+                        throw error
+                    }
+                    false
+                }
+                if (verified) {
+                    response.close()
+                    response = chain.proceed(withCookies(original))
+                }
             }
             state.retryAfter = if (isChallenge(response)) clock() + 30_000L else 0L
             return response

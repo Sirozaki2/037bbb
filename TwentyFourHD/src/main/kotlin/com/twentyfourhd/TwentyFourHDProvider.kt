@@ -1,6 +1,8 @@
 package com.twentyfourhd
 
 import android.content.Context
+import com.providers.network.ProviderBrowser
+import com.providers.network.withBrowserFallback
 import com.lagradost.cloudstream3.*
 import com.providers.network.CloudflareSession
 import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
@@ -11,7 +13,11 @@ import java.util.concurrent.CancellationException
 
 @CloudstreamPlugin
 class TwentyFourHDPlugin : Plugin() {
-    override fun load(context: Context) { registerMainAPI(TwentyFourHDProvider()) }
+    override fun load(context: Context) {
+        val provider = TwentyFourHDProvider()
+        registerMainAPI(provider)
+        ProviderBrowser.install(this, listOf(provider.name to provider.mainUrl))
+    }
 }
 
 class TwentyFourHDProvider : MainAPI() {
@@ -56,7 +62,10 @@ class TwentyFourHDProvider : MainAPI() {
         return newMovieLoadResponse(detail.title, url, TvType.Movie, url) { posterUrl = detail.poster; posterHeaders = mapOf("Referer" to url); plot = detail.plot }
     }
 
-    override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
+    override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean =
+        withBrowserFallback(data.substringBefore('#'), callback) { emit -> loadVideoLinks(data, isCasting, subtitleCallback, emit) }
+
+    private suspend fun loadVideoLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
         val page = data.substringBefore('#')
         val detail = TwentyFourHDParser.detail(document(page, fresh = true))
         val episode = data.substringAfter("#episode=", "").toIntOrNull()

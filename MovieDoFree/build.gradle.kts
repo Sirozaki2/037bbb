@@ -3,7 +3,7 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
 }
 
-version = 6
+version = 7
 
 cloudstream {
     language = "th"

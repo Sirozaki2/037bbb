@@ -2,11 +2,13 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.17")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.3")
 }
 
 // Use an integer for version numbers
 
-version = 10
+version = 11
 
 cloudstream {
     language = "th"
@@ -36,3 +38,6 @@ android {
         viewBinding = true
     }
 }
+
+// The plugin compiler uses the app API as compileOnly; fallback tests exercise those API types.
+configurations.getByName("testImplementation").extendsFrom(configurations.getByName("compileOnly"))

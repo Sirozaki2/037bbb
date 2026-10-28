@@ -2,6 +2,7 @@ package com.example
 
 import com.lagradost.cloudstream3.*
 import com.providers.network.CloudflareSession
+import com.providers.network.withBrowserFallback
 import com.lagradost.cloudstream3.utils.*
 import java.net.URLEncoder
 import kotlin.coroutines.cancellation.CancellationException
@@ -97,7 +98,10 @@ class ExampleProvider : MainAPI() {
         }
     }
 
-    override suspend fun loadLinks(
+    override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean =
+        withBrowserFallback(data, callback) { emit -> loadVideoLinks(data, isCasting, subtitleCallback, emit) }
+
+    private suspend fun loadVideoLinks(
         data: String,
         isCasting: Boolean,
         subtitleCallback: (SubtitleFile) -> Unit,
