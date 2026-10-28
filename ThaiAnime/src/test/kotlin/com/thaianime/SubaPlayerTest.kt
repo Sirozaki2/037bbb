@@ -36,6 +36,17 @@ class SubaPlayerTest {
         assertTrue(SubaPlayer.streams(fake).isEmpty())
         assertNull(SubaPlayer.target(player, "unrelated script"))
     }
+    @Test fun `browser discovery only accepts real Suba content player requests`() {
+        listOf("https://suba-anime.com/player/522953", "https://www.suba-anime.com/player2/123/?token=a%2Bb").forEach {
+            assertTrue(it, SubaPlayer.capturePattern.matches(it))
+            assertTrue(it, SubaPlayer.isPlayer(it))
+        }
+        listOf("https://suba-anime.com.evil.test/player/522953", "https://ads.example/player/522953",
+            "https://suba-anime.com/Ads_Video/ad.mp4", "https://suba-anime.com/player/banner",
+            "https://user:pass@suba-anime.com/player/522953", "https://suba-anime.com/player/522953#fragment").forEach {
+            assertFalse(it, SubaPlayer.capturePattern.matches(it))
+        }
+    }
     @Test fun `only the observed Suba player paths are handled`() {
         assertTrue(SubaPlayer.isPlayer("https://suba-anime.com/player/123"))
         assertTrue(SubaPlayer.isPlayer("https://suba-anime.com/player2/123"))

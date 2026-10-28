@@ -4,7 +4,7 @@ import android.content.Context
 import com.providers.network.ProviderBrowser
 import com.providers.network.withBrowserFallback
 import com.lagradost.cloudstream3.*
-import com.providers.network.CloudflareSession
+import com.providers.network.BrowserSession
 import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
 import com.lagradost.cloudstream3.plugins.Plugin
 import com.lagradost.cloudstream3.utils.*
@@ -31,9 +31,9 @@ class AHDZeroProvider : MainAPI() {
     override var sequentialMainPage = false
     private val listingRequests = Semaphore(3)
     override val mainPage = SiteCategories.homeEntries.map { (path, title) -> mainPage(mainUrl + path, title) }
-    private val cloudflare by lazy { CloudflareSession() }
+    private val browserSession by lazy { BrowserSession() }
     private suspend fun document(url: String, fresh: Boolean = false): org.jsoup.nodes.Document {
-        val response = if (fresh) app.get(url, interceptor = cloudflare, cacheTime = 0) else app.get(url, interceptor = cloudflare)
+        val response = if (fresh) app.get(url, interceptor = browserSession, cacheTime = 0) else app.get(url, interceptor = browserSession)
         if (response.code !in 200..299) throw ErrorLoadingException("เว็บปฏิเสธการเข้าถึง (HTTP ${response.code})")
         return response.document.apply { setBaseUri(response.url) }
     }
@@ -70,7 +70,7 @@ class AHDZeroProvider : MainAPI() {
 
     private suspend fun loadVideoLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
         val embed = AHDZeroParser.embed(document(data, fresh = true)) ?: return false
-        val player = app.get(embed, referer = data, interceptor = cloudflare, cacheTime = 0)
+        val player = app.get(embed, referer = data, interceptor = browserSession, cacheTime = 0)
         val stream = AHDZeroParser.stream(player.document.apply { setBaseUri(player.url) }) ?: return false
         callback(newExtractorLink(name, name, stream, ExtractorLinkType.M3U8) { referer = player.url; quality = Qualities.Unknown.value })
         return true

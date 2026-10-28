@@ -59,10 +59,30 @@ ICU ตรวจ regex จริงทั้ง 27 รูปแบบในส�
 - **ThaiAnime v3** เพิ่ม AnimeMami สำหรับ Ruka โดยอ่าน `#app[data-page]` component `Player/Show` เฉพาะ `props.video.url`
   และคำบรรยายจาก `subtitle_path` ไม่อ่าน default/error/ad video รูปแบบ `.txt` เป็น HLS ตามสคริปต์ตัวเล่น
   ตัวดัก HTTP แกะเฉพาะ JSON `{p: base64}` ที่ถอดแล้วขึ้นต้น `#EXTM3U` บนโฮสต์ CDN ของลิงก์นั้น
-  จำกัดการตรวจไม่เกิน1MiBและไม่แก้ข้อมูล MP4/segment/playlistปกติ ส่งผ่าน Cloudflare handler เฉพาะโฮสต์นั้น
+  จำกัดการตรวจไม่เกิน1MiBและไม่แก้ข้อมูล MP4/segment/playlistปกติ รุ่นปัจจุบันใช้คุกกี้เดิมโดยไม่เปิดระบบยืนยันอัตโนมัติ
   ดึงหน้า AnimeMami ใหม่ทุกครั้งที่กดเล่น ไม่ฝัง URL วิดีโอจากตัวอย่าง
 - หลักฐานเพิ่มเติม: `https://animemami.xyz/build/assets/Show-CjrBPCtA.js` ตอบ200; โค้ดตัวเล่นจริงใช้ `.txt` เป็นHLSและแกะJSON.pด้วยatob
   CDN ของตัวอย่างตอบ403ใน sandbox จึงยัง **ไม่ยืนยันว่าตอนที่ใช้ AnimeMami เล่นได้บน Android**
 - Abyss ของ Ruka ยังต้องมีตัวส่งข้อมูล chunk/service-worker โดยเฉพาะ ข้อมูล bootstrap เป็น AES-CTR และมี virtual MP4 URLs
   ไม่ควรส่ง URL เสมือนเหล่านั้นให้ native player ตรง ๆ ยังไม่มีแพตช์การส่งข้อมูล Abyss ในรอบนี้
 - Movie2Free.co/FWIP/AnimeSeven ยังไม่มีหลักฐานการแก้สำเร็จ ไม่ต้องเปิด F12 เพื่อเก็บ HAR เพราะ FWIP มีเงื่อนไขสั่งหยุดเมื่อพบ DevTools
+
+## ตรวจซ้ำตามภาพรายงาน 28 ตุลาคม 2026
+
+ผู้ใช้ยืนยันว่า **AnimeRuka เล่นได้แล้ว** จึงคงตัวอ่าน AnimeMami/Abyss เดิมไว้
+ภาพรายงานเดิมระบุ FWIP TV/Movie2Free.co No Links Found และ AnimeSeven HTTP403
+
+- Movie2Free.co: หน้าหนัง `drawn-together-2026` ถูกปฏิเสธ403จาก sandbox แต่ wrapper `backup.ssplayer168.xyz` และ FastCDN ของตัวอย่างยังตอบ200
+  master HLS มีเสียงไทยและภาพ360p/720p เพิ่มทางค้นหา content iframe ผ่าน native WebView สูงสุด8วินาทีใน diagnostic4
+  แล้วใช้ resolver/FastCDN interceptor เดิม ทดสอบกรณี HTTPหน้าหนังถูกปฏิเสธแต่พบ wrapper ผ่าน browser
+  ยังไม่เปิดเผยแพร่และยังไม่ยืนยันการเล่นบน Android
+- FWIP TV: ตรวจ subdomain จริง `nom-na.player123up.xyz` พร้อม API path/headers ตาม JavaScript แล้ว
+  `/api/backend/videos/<id>/play` และ `/player/settings` ยังตอบ403 ทั้ง HTTP และหน้าตัวเล่นใน Chromium ถูกบล็อก
+  สคริปต์มี delivery `protected-opaque` และ guard ที่สั่ง Playback stopped; ยังไม่มี JSON สดให้ยืนยันรูปแบบการส่งวิดีโอ
+  diagnostic5 เก็บ HTTP error ไว้ในข้อความเพื่อแยกกรณี APIถูกปฏิเสธจากรูปแบบสตรีมที่ไม่รองรับ
+  ไม่เดาว่า opaque URL เป็นMP4/HLS และไม่เปิดเผยแพร่
+- AnimeSeven: หน้าตอนบนwwwและหน้าแรกแบบไม่มีwwwยังตอบ403; Chromiumแสดง blocked page
+  คงสถานะเปิดเว็บเท่านั้น ต้องเข้าถึงหน้าจริงได้ก่อนจึงจะยืนยันตัวเล่นสดและเปิด provider ได้
+
+แพ็กเกจปัจจุบันถอดการยืนยัน Cloudflare อัตโนมัติตามคำขอแล้ว คงคุกกี้เดิมและการเปิดเว็บสำรอง
+การถอดตัวช่วยไม่เปลี่ยน HTTP403 ของเซิร์ฟเวอร์ให้เป็น200 และผลจากเครือข่าย sandbox ไม่ใช่ผลเครือข่ายผู้ใช้

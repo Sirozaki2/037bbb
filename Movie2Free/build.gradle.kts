@@ -1,4 +1,4 @@
-version = 3
+version = 4
 cloudstream {
     language = "th"
     description = "Movie2Free.co หนังและตัวเล่นสำรอง (ทดลอง: รอทดสอบบนอุปกรณ์)"

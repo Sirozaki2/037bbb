@@ -4,7 +4,7 @@ import android.content.Context
 import com.providers.network.ProviderBrowser
 import com.providers.network.withBrowserFallback
 import com.lagradost.cloudstream3.*
-import com.providers.network.CloudflareSession
+import com.providers.network.BrowserSession
 import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
 import com.lagradost.cloudstream3.plugins.Plugin
 import com.lagradost.cloudstream3.utils.*
@@ -30,9 +30,9 @@ class FWIPTVProvider : MainAPI() {
     override var sequentialMainPage = true
     override var sequentialMainPageDelay = 100L
     override val mainPage = SiteCategories.entries.map { (path, title) -> mainPage(mainUrl + path, title) }
-    private val cloudflare by lazy { CloudflareSession() }
+    private val browserSession by lazy { BrowserSession() }
     private suspend fun document(url: String, fresh: Boolean = false): org.jsoup.nodes.Document {
-        val response = if (fresh) app.get(url, interceptor = cloudflare, cacheTime = 0) else app.get(url, interceptor = cloudflare)
+        val response = if (fresh) app.get(url, interceptor = browserSession, cacheTime = 0) else app.get(url, interceptor = browserSession)
         if (response.code !in 200..299) throw ErrorLoadingException("FWIP TV ไม่พร้อมใช้งาน (HTTP ${response.code})")
         return response.document.apply { setBaseUri(response.url) }
     }
@@ -66,7 +66,7 @@ class FWIPTVProvider : MainAPI() {
         if (player != null) {
             suspend fun play(id: String, label: String) {
                 val response = app.get("${player.api}/videos/$id/play", referer = embed,
-                    headers = player.headers, interceptor = cloudflare, cacheTime = 0)
+                    headers = player.headers, interceptor = browserSession, cacheTime = 0)
                 if (response.code !in 200..299) throw ErrorLoadingException("FWIP TV ตัวเล่นไม่พร้อมใช้งาน (HTTP ${response.code})")
                 val result = Player123.result(response.text, player.api)
                 result.source?.let { source ->
@@ -88,13 +88,13 @@ class FWIPTVProvider : MainAPI() {
             catch (error: Exception) { if (error is CancellationException) throw error; failure = error }
             try {
                 val info = app.get("${player.api}/videos/${player.id}/thai-version/info", referer = embed,
-                    headers = player.headers, interceptor = cloudflare, cacheTime = 0)
+                    headers = player.headers, interceptor = browserSession, cacheTime = 0)
                 if (info.code in 200..299) Player123.thaiVersion(info.text)?.let { (id, label) ->
                     if (id != player.id) play(id, label)
                 }
             } catch (error: Exception) { if (error is CancellationException) throw error }
             if (found) return true
-            if (failure != null) throw ErrorLoadingException("FWIP TV โหลด API ตัวเล่นไม่ได้ ลองใหม่ภายหลังหรือเปิดตรวจสอบในเว็บ")
+            if (failure != null) throw ErrorLoadingException("FWIP TV โหลด API ตัวเล่นไม่ได้ (${failure.message ?: failure.javaClass.simpleName})")
             throw ErrorLoadingException("FWIP TV ยังไม่รองรับรูปแบบสตรีมนี้ หรือลิงก์สำรองไม่พร้อมใช้งาน")
         }
         // Other hosts remain delegated to the app's registered extractors.

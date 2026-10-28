@@ -44,6 +44,15 @@ class PlaybackFallbackTest {
         assertTrue(error.message.orEmpty().contains("รูปเฟือง"))
     } }
 
+    @Test fun `failure cause remains visible after the fallback successfully opens`() { runBlocking {
+        val error = runCatching {
+            withBrowserFallback("https://catalog.example/ep-2", {}, { true }) { throw IOException("Player HTTP 403") }
+        }.exceptionOrNull()
+        assertTrue(error is ErrorLoadingException)
+        assertTrue(error!!.message.orEmpty().contains("เปิดเว็บสำรองแล้ว"))
+        assertTrue(error.message.orEmpty().contains("Player HTTP 403"))
+    } }
+
     @Test fun `cancellation never opens another window`() { runBlocking {
         val expected = CancellationException("User left playback")
         val error = runCatching {

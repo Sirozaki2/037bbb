@@ -4,7 +4,7 @@ import android.content.Context
 import com.providers.network.ProviderBrowser
 import com.providers.network.withBrowserFallback
 import com.lagradost.cloudstream3.*
-import com.providers.network.CloudflareSession
+import com.providers.network.BrowserSession
 import com.lagradost.cloudstream3.network.WebViewResolver
 import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
 import com.lagradost.cloudstream3.plugins.Plugin
@@ -12,7 +12,7 @@ import com.lagradost.cloudstream3.utils.*
 import kotlin.coroutines.cancellation.CancellationException
 
 internal object AnimeNetwork {
-    val cloudflare by lazy { CloudflareSession() }
+    val browserSession by lazy { BrowserSession() }
 }
 
 @CloudstreamPlugin
@@ -33,16 +33,16 @@ internal class ThaiAnimeProvider(private val site: Site) : MainAPI() {
     override var sequentialMainPage = true
     override var sequentialMainPageDelay = 100L
     override val mainPage = AnimeCategories.homeEntries.getValue(site).map { (path, title) -> mainPage(mainUrl + path, title) }
-    private val cloudflare get() = AnimeNetwork.cloudflare
+    private val browserSession get() = AnimeNetwork.browserSession
     private suspend fun document(url: String, fresh: Boolean = false, referer: String = mainUrl): org.jsoup.nodes.Document {
         val wakuPlayback = site == Site.WAKU && fresh
         val headers = when {
             wakuPlayback && WakuPlayer.playerPattern.matches(url) -> mapOf("User-Agent" to WakuPlayer.mediaUserAgent)
-            wakuPlayback -> cloudflare.getCookieHeaders(url).toMap()
+            wakuPlayback -> browserSession.getCookieHeaders(url).toMap()
             else -> emptyMap()
         }
-        // Playback reuses catalog clearance. A blocked API/iframe must not open another 60-second challenge.
-        val interceptor = if (wakuPlayback) null else cloudflare
+        // Reuse existing website cookies without launching a verification flow.
+        val interceptor = if (wakuPlayback) null else browserSession
         val response = if (fresh) app.get(url, referer = referer, headers = headers, interceptor = interceptor, cacheTime = 0) else app.get(url, referer = referer, headers = headers, interceptor = interceptor)
         if (response.code !in 200..299) throw ErrorLoadingException("$name โหลดหน้าเว็บไม่ได้ (HTTP ${response.code})")
         return response.document.apply { setBaseUri(response.url) }
@@ -73,7 +73,7 @@ internal class ThaiAnimeProvider(private val site: Site) : MainAPI() {
         if (site == Site.WAKU && extractorLink.extractorData == "waku-nya") return NyaInterceptor()
         if (extractorLink.extractorData != "animemami-playlist") return null
         val host = runCatching { java.net.URI(extractorLink.url).host }.getOrNull() ?: return null
-        return AnimeMamiInterceptor(host, cloudflare)
+        return AnimeMamiInterceptor(host, browserSession)
     }
     override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean =
         withBrowserFallback(data, callback) { emit -> loadVideoLinks(data, isCasting, subtitleCallback, emit) }
@@ -107,9 +107,8 @@ internal class ThaiAnimeProvider(private val site: Site) : MainAPI() {
                     }
                 } else if (site == Site.SUBA && SubaPlayer.isPlayer(source.url)) {
                     val resolver = SubaPlayer { url, ref ->
-                        // Reuse clearance without opening a separate challenge for the player
-                        // and ad configuration. The resolver has a verified content-origin fallback.
-                        val response = app.get(url, referer = ref, headers = cloudflare.getCookieHeaders(url), cacheTime = 0)
+                        // Reuse existing website cookies; the resolver also has an observed content-origin fallback.
+                        val response = app.get(url, referer = ref, headers = browserSession.getCookieHeaders(url), cacheTime = 0)
                         if (response.code !in 200..299) throw ErrorLoadingException("Suba player HTTP ${response.code}")
                         response.document.apply { setBaseUri(response.url) }
                     }
@@ -133,7 +132,7 @@ internal class ThaiAnimeProvider(private val site: Site) : MainAPI() {
                 } else loadExtractor(source.url, referer, subtitleCallback, emit)
             } catch (error: Exception) {
                 if (error is CancellationException) throw error
-                if (error is ErrorLoadingException) playbackFailure = error.message
+                playbackFailure = error.message ?: error.javaClass.simpleName
             }
         }
         suspend fun page(url: String, depth: Int) {
@@ -150,7 +149,7 @@ internal class ThaiAnimeProvider(private val site: Site) : MainAPI() {
                 WakuPlayer.sources(doc,
                     getJson = { endpoint, referer ->
                         val response = app.get(endpoint, referer = referer,
-                            headers = cloudflare.getCookieHeaders(endpoint).toMap() + WakuPlayer.ajaxHeaders,
+                            headers = browserSession.getCookieHeaders(endpoint).toMap() + WakuPlayer.ajaxHeaders,
                             cacheTime = 0)
                         if (response.code == 200) response.text else null
                     },
@@ -162,7 +161,7 @@ internal class ThaiAnimeProvider(private val site: Site) : MainAPI() {
             AnimePlayer.sources(site, doc).forEach { resolve(it, url, 0) }
             AnimePlayer.options(doc).forEach { option ->
                 try {
-                    val response = app.get(option.url, referer = url, interceptor = cloudflare, cacheTime = 0)
+                    val response = app.get(option.url, referer = url, interceptor = browserSession, cacheTime = 0)
                     if (response.code == 200) AnimePlayer.ajaxEmbed(response.text, url)?.let { resolve(PlayerSource(it, option.label), url, 0) }
                 } catch (error: Exception) { if (error is CancellationException) throw error }
             }
@@ -194,6 +193,31 @@ internal class ThaiAnimeProvider(private val site: Site) : MainAPI() {
                         })
                     }
                 } catch (error: Exception) { if (error is CancellationException) throw error }
+            }
+        } else if (site == Site.SUBA) {
+            try { page(data, 0) } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                playbackFailure = error.message ?: error.javaClass.simpleName
+            }
+            if (emitted.isEmpty()) {
+                try {
+                    // Read the real iframe through the browser's native networking and JS.
+                    // This is bounded player discovery; it does not solve or poll a challenge.
+                    val request = WebViewResolver(
+                        interceptUrl = SubaPlayer.capturePattern,
+                        userAgent = null,
+                        useOkhttp = false,
+                        timeout = 8_000L,
+                    ).resolveUsingWebView(data, referer = "$mainUrl/").first
+                    if (request != null && request.method == "GET" && SubaPlayer.isPlayer(request.url.toString())) {
+                        val target = request.url.toString()
+                        visited.remove(target)
+                        resolve(PlayerSource(target, "ตัวเล่นเว็บ"), request.header("Referer") ?: data, 0)
+                    }
+                } catch (error: Exception) {
+                    if (error is CancellationException) throw error
+                    if (playbackFailure == null) playbackFailure = error.message ?: error.javaClass.simpleName
+                }
             }
         } else page(data, 0)
         if (emitted.isEmpty()) throw ErrorLoadingException("$name ไม่พบลิงก์ที่เล่นได้" +
