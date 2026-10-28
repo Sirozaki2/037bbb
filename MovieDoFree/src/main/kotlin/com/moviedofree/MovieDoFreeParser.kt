@@ -1,5 +1,6 @@
 package com.moviedofree
 
+import com.providers.network.CatalogPagination
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import java.net.URI
@@ -14,13 +15,7 @@ internal object MovieDoFreeParser {
             .map { image.absUrl(it) }.firstOrNull { it.startsWith("https://") || it.startsWith("http://") }
     }
 
-    fun pageUrl(url: String, page: Int): String {
-        if (page <= 1) return url
-        val uri = URI(url)
-        val path = uri.rawPath.trimEnd('/').replace(Regex("/page/\\d+$"), "")
-        return "${uri.scheme}://${uri.rawAuthority}$path/page/$page/" +
-            (uri.rawQuery?.let { "?$it" } ?: "")
-    }
+    fun pageUrl(url: String, page: Int): String = if (page <= 1) url else CatalogPagination.path(url, page)
 
     fun cards(document: Document): List<MovieCard> = document.select(".column_1_center > .row")
         .lastOrNull { it.selectFirst(".movie-box") != null }?.select(".movie-box").orEmpty().mapNotNull { card ->
@@ -48,11 +43,6 @@ internal object MovieDoFreeParser {
         }.distinct().toList()
     }
 
-    fun hasNext(document: Document): Boolean = document.select("a.next.page-numbers[href]").any {
-        val href = it.attr("href").trim()
-        val url = it.absUrl("href")
-        href.isNotBlank() && !href.startsWith('#') &&
-            (url.startsWith("https://") || url.startsWith("http://")) &&
-            url.substringBefore('#') != document.baseUri().substringBefore('#')
-    }
+    fun hasNext(document: Document): Boolean =
+        CatalogPagination.hasNext(document, "a.next.page-numbers[href]")
 }

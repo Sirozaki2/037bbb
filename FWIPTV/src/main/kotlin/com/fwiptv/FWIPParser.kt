@@ -1,5 +1,6 @@
 package com.fwiptv
 
+import com.providers.network.CatalogPagination
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import java.net.URI
@@ -47,11 +48,6 @@ internal object FWIPParser {
     fun embed(doc: Document): String? = doc.selectFirst("[data-movie-player][data-embed-url]")
         ?.let { httpUrl(doc.baseUri(), it.attr("data-embed-url")) }
 
-    fun pageUrl(url: String, page: Int): String {
-        if (page <= 1) return url
-        val uri = URI(url)
-        val path = uri.rawPath.trimEnd('/').replace(Regex("/page/\\d+$"), "")
-        return "${uri.scheme}://${uri.rawAuthority}$path/page/$page/" + (uri.rawQuery?.let { "?$it" } ?: "")
-    }
-    fun hasNext(doc: Document): Boolean = doc.select(".movie-pagination a.next[href]").any { httpUrl(doc.baseUri(), it.attr("href")) != null }
+    fun pageUrl(url: String, page: Int): String = if (page <= 1) url else CatalogPagination.path(url, page)
+    fun hasNext(doc: Document): Boolean = CatalogPagination.hasNext(doc, ".movie-pagination a.next[href]")
 }

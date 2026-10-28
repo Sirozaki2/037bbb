@@ -1,6 +1,7 @@
 package com.ahdzero
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.providers.network.CatalogPagination
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import java.net.URI
@@ -63,13 +64,9 @@ internal object AHDZeroParser {
     fun stream(doc: Document): String? = doc.select("media-player source[src], media-provider source[src]")
         .firstNotNullOfOrNull { e -> httpUrl(doc.baseUri(), e.attr("src"))?.takeIf { URI(it).path.endsWith(".m3u8") } }
 
-    fun pageUrl(url: String, page: Int): String {
-        if (page <= 1) return url
-        val base = url.replace(Regex("([?&])page=\\d+(&?)")) { if (it.groupValues[2].isNotEmpty()) it.groupValues[1] else "" }.trimEnd('?', '&')
-        return base + (if ('?' in base) "&" else "?") + "page=$page"
-    }
+    fun pageUrl(url: String, page: Int): String = CatalogPagination.query(url, page)
 
     fun hasNext(doc: Document, page: Int): Boolean = doc.select("nav[aria-label=Pagination] a[href]").any {
-        Regex("[?&]page=(\\d+)").find(it.attr("href"))?.groupValues?.get(1)?.toIntOrNull()?.let { n -> n > page } == true
+        CatalogPagination.isNext(doc.baseUri(), it.attr("href")) && Regex("[?&]page=(\\d+)").find(it.attr("href"))?.groupValues?.get(1)?.toIntOrNull()?.let { n -> n > page } == true
     }
 }

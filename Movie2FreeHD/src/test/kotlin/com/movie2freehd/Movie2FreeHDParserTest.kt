@@ -76,4 +76,23 @@ class Movie2FreeHDParserTest {
         val doc = org.jsoup.Jsoup.parse("""<div class=pagination><a class="next" href="/page/3/">Next</a></div>""", base)
         assertTrue(Movie2FreeHDParser.hasNext(doc))
     }
+
+    @Test fun `duplicate episode rows merge audio and backup players without merging seasons`() {
+        val doc = Jsoup.parse("""<h1 class=m2f-title>Show</h1><div class=m2f-seasons>
+            <div class=m2f-season-row><div class=m2f-season-label>Season 1</div>
+                <button class=m2f-ep data-sources='{"thai":"https://player.example/main"}'><span class=m2f-ep-num>#2</span></button>
+                <button class=m2f-ep data-sources='{"sub":"https://player.example/main"}' data-url="https://player.example/backup"><span class=m2f-ep-num>#2</span></button>
+            </div><div class=m2f-season-row><div class=m2f-season-label>Season 2</div>
+                <button class=m2f-ep data-url="https://player.example/season2"><span class=m2f-ep-num>#2</span></button>
+            </div></div>""", "https://movie2freehd.com/series/show/")
+        val episodes = Movie2FreeHDParser.detail(doc).episodes
+        assertEquals(listOf(1, 2), episodes.map { it.season })
+        assertEquals(listOf("https://player.example/main", "https://player.example/backup"), episodes.first().players.map { it.url })
+        assertEquals("พากย์ไทย / ซับไทย", episodes.first().players.first().label)
+    }
+
+    @Test fun `merging already grouped audio labels is idempotent`() {
+        val players = listOf(PlayerLink("https://player.example/main", "พากย์ไทย / ซับไทย"), PlayerLink("https://player.example/main", "พากย์ไทย"))
+        assertEquals("พากย์ไทย / ซับไทย", Movie2FreeHDParser.mergePlayers(players).single().label)
+    }
 }

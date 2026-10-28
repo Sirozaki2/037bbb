@@ -2,6 +2,7 @@ package com.movie2free
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import com.providers.network.CatalogPagination
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 
@@ -67,6 +68,6 @@ internal object Movie2FreeParser {
         val path = parsed.encodedPath.trimEnd('/').replace(Regex("/page/\\d+$"), "")
         return parsed.newBuilder().encodedPath("$path/page/$page/").build().toString()
     }
-    fun hasNext(doc: Document): Boolean = doc.select("a.next.page-numbers[href], link[rel=next][href]")
-        .any { url(doc.baseUri(), it.attr("href")) != null }
+    fun hasNext(doc: Document): Boolean =
+        CatalogPagination.hasNext(doc, "a.next.page-numbers[href], link[rel=next][href]")
 }

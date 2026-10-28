@@ -11,6 +11,7 @@ class MeeRoutingTest {
     private val id = "1234567890abcdef1234567890abcdef12"
     private val routing = MeeRouting.create(id, listOf("https://a.example", "https://b.example"))!!
     private class Chain(val input: Request, val statuses: List<Int>) : Interceptor.Chain {
+        private val testCall = OkHttpClient().newCall(input)
         val requests = mutableListOf<Request>()
         override fun request() = input
         override fun proceed(request: Request): Response {
@@ -20,7 +21,7 @@ class MeeRoutingTest {
             return Response.Builder().request(request).protocol(Protocol.HTTP_1_1).code(status).message("Test").body("media".toResponseBody()).build()
         }
         override fun connection(): Connection? = null
-        override fun call(): Call = error("Unused")
+        override fun call(): Call = testCall
         override fun connectTimeoutMillis() = 1000
         override fun readTimeoutMillis() = 1000
         override fun writeTimeoutMillis() = 1000

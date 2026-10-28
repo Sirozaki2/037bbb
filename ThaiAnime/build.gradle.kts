@@ -1,4 +1,4 @@
-version = 11
+version = 12
 cloudstream {
     language = "th"
     description = "Neko-Miku, AnimeRuka, Suba-Anime (ทดลอง: การเล่นขึ้นกับโฮสต์วิดีโอ)"

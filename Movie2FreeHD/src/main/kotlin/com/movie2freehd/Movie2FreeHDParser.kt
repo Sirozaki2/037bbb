@@ -1,6 +1,7 @@
 package com.movie2freehd
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.providers.network.CatalogPagination
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import java.net.URI
@@ -50,7 +51,9 @@ internal object Movie2FreeHDParser {
                 val urls = mergePlayers(values.mapNotNull { (value, label) -> httpUrl(doc.baseUri(), value)?.let { PlayerLink(it, label) } })
                 if (urls.isEmpty()) null else EpisodeInfo(ep.attr("data-label").ifBlank { "ตอนที่ $number" }, season, number, urls)
             }
-        }.distinctBy { it.season to it.number }.sortedWith(compareBy({ it.season }, { it.number }))
+        }.groupBy { it.season to it.number }.values.map { rows ->
+            rows.first().copy(players = mergePlayers(rows.flatMap { it.players }))
+        }.sortedWith(compareBy({ it.season }, { it.number }))
         return MovieDetail(title, doc.selectFirst(".m2f-poster-big")?.let { poster(it, doc.baseUri()) },
             doc.selectFirst(".m2f-synopsis")?.text()?.takeIf { it.isNotBlank() },
             doc.select(".m2f-genres a").map { it.text() }.distinct(), episodes,
@@ -58,7 +61,7 @@ internal object Movie2FreeHDParser {
     }
 
     fun mergePlayers(players: List<PlayerLink>): List<PlayerLink> = players.groupBy { it.url }.map { (url, links) ->
-        PlayerLink(url, links.map { it.label }.filter { it.isNotBlank() }.distinct().joinToString(" / ").ifBlank { "ตัวเล่น" })
+        PlayerLink(url, links.flatMap { it.label.split(" / ") }.filter { it.isNotBlank() }.distinct().joinToString(" / ").ifBlank { "ตัวเล่น" })
     }
 
     fun options(doc: Document): List<PlayerOption> = doc.select(".dooplay_player_option").mapNotNull { e ->
@@ -71,15 +74,7 @@ internal object Movie2FreeHDParser {
         httpUrl(base, json.readTree(response).path("embed_url").asText())
     }.getOrNull()
 
-    fun pageUrl(url: String, page: Int): String {
-        if (page <= 1) return url
-        val uri = URI(url)
-        val path = uri.rawPath.trimEnd('/').replace(Regex("/page/\\d+$"), "")
-        return "${uri.scheme}://${uri.rawAuthority}$path/page/$page/" + (uri.rawQuery?.let { "?$it" } ?: "")
-    }
-    fun hasNext(doc: Document): Boolean = doc.select(".pagination a.next[href]").any {
-        httpUrl(doc.baseUri(), it.attr("href"))?.substringBefore('#')?.let { target ->
-            target != doc.baseUri().substringBefore('#')
-        } == true
-    }
+    fun pageUrl(url: String, page: Int): String = if (page <= 1) url else CatalogPagination.path(url, page)
+    fun hasNext(doc: Document): Boolean =
+        CatalogPagination.hasNext(doc, ".pagination a.next[href]")
 }
