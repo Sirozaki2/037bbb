@@ -30,9 +30,14 @@
 ## แพ็กเกจและการตรวจ
 
 เจ็ดแพ็กเกจที่เผยแพร่คือ ExampleProvider, TwentyFiveHD, MovieDoFree, Movie2FreeHD, AHDZero, TwentyFourHD, ThaiAnime
-ThaiAnime ลงทะเบียน AnimeRuka/Indy-Anime/Neko-Miku/Suba-Anime รวมทั้งหมดสิบแหล่ง
-Indy ใช้ IndyAnimeProvider/IndyParser/IndyPlayer แยกจาก Site enum เดิม; อ่านเฉพาะ main catalog, กลุ่มตอน และตัวเลือกใน #mpPlayer
-IndyPlayer ยอมรับ MP4 เฉพาะ host/path ที่ตรง ID ของ embed จาก Clappr ที่สังเกตได้จริง และส่งต่อ extractor/เว็บสำรองเมื่อไม่รองรับ
+ThaiAnime ลงทะเบียน AnimeRuka/AnimeYour/Hit-Anime/Indy-Anime/Neko-Miku/Suba-Anime รวมทั้งหมดสิบสองแหล่ง
+Indy/Hit/Your ใช้ TeamAnimeSite ระบุ route/selector/alias ของแต่ละเว็บ และใช้ TeamAnimeParser/TeamAnimePlayer/TeamAnimeProvider ร่วมกัน
+Site enum เดิมยังดูแล Neko/Ruka/Suba และแหล่งที่ปิดไว้ โดยคงตัวอ่านวิดีโอเดิม
+TeamAnimePlayer อ่านเฉพาะปุ่มจริง/dropdown/iframe ใน #mpPlayer; จัดสำรอง MP4/HLS ที่สังเกตได้ไว้ก่อน
+MP4/HLS ต้องตรง host/path/ID ของ embed และถูกใช้เป็น source ของ Clappr; callback ระบุ VIDEO หรือ M3U8 ตามรูปแบบจริง
+HLS เก็บ URL master พร้อม port/query/Referer ไม่ดึง session/key มา cache ใน plugin; การอ่าน playlist และ AES-128 เป็นหน้าที่ native player
+ใช้ extractor ต่อเมื่อรูปแบบเฉพาะไม่รองรับ และรักษาการยกเลิก/ผลจากตัวเล่นที่ทำงานได้
+Hit อาจ redirect หน้าตอนใน browser แม้ HTTP HTML มีตัวเล่น จึงเปิด player URL ที่ประกาศไว้เป็น web fallback เมื่ออ่านพบแล้ว
 โค้ด shared ถูกคอมไพล์เข้าแต่ละแพ็กเกจโดย root build script; หากเปลี่ยน shared ต้องเพิ่ม version ของทุก consumer ที่สร้างใหม่
 
 `ExampleProvider/src/test/.../com/providers/network/` ตรวจ helper ร่วม รวม response ownership, cancellation และ Android UI

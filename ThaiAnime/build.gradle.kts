@@ -1,7 +1,7 @@
-version = 13
+version = 14
 cloudstream {
     language = "th"
-    description = "AnimeRuka, Indy-Anime, Neko-Miku, Suba-Anime (ทดลอง: การเล่นขึ้นกับโฮสต์วิดีโอ)"
+    description = "AnimeRuka, AnimeYour, Hit-Anime, Indy-Anime, Neko-Miku, Suba-Anime (ทดลอง: การเล่นขึ้นกับโฮสต์วิดีโอ)"
     authors = listOf("jasdwa22")
     status = 3
     tvTypes = listOf("Anime", "AnimeMovie")
