@@ -1,4 +1,4 @@
-version = 4
+version = 5
 cloudstream {
     language = "th"
     description = "Movie2FreeHD หนังและซีรีส์ พากย์ไทย/ซับไทย"

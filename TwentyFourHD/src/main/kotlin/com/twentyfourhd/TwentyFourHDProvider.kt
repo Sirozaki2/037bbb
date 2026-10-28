@@ -2,7 +2,7 @@ package com.twentyfourhd
 
 import android.content.Context
 import com.lagradost.cloudstream3.*
-import com.lagradost.cloudstream3.network.CloudflareKiller
+import com.providers.network.CloudflareSession
 import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
 import com.lagradost.cloudstream3.plugins.Plugin
 import com.lagradost.cloudstream3.utils.*
@@ -24,7 +24,7 @@ class TwentyFourHDProvider : MainAPI() {
     override var sequentialMainPage = true
     override var sequentialMainPageDelay = 100L
     override val mainPage = SiteCategories.homeEntries.map { (path, title) -> mainPage(mainUrl + path, title) }
-    private val cloudflare by lazy { CloudflareKiller() }
+    private val cloudflare by lazy { CloudflareSession() }
     private suspend fun document(url: String, fresh: Boolean = false): org.jsoup.nodes.Document {
         val response = if (fresh) app.get(url, interceptor = cloudflare, cacheTime = 0) else app.get(url, interceptor = cloudflare)
         if (response.code !in 200..299) throw ErrorLoadingException("เว็บปฏิเสธการเข้าถึง (HTTP ${response.code})")
@@ -65,7 +65,7 @@ class TwentyFourHDProvider : MainAPI() {
         for ((index, url) in players.withIndex()) {
             // A broken backup must not discard links already found from another player.
             val result = runCatching {
-                val response = app.get(url, referer = page, cacheTime = 0)
+                val response = app.get(url, referer = page, interceptor = cloudflare, cacheTime = 0)
                 TwentyFourHDParser.stream(response.document.apply { setBaseUri(response.url) })?.let { stream ->
                     callback(newExtractorLink(name, listOfNotNull(detail.audio, if (index == 0) "ตัวเล่นหลัก" else "สำรอง $index").joinToString(" - "), stream, ExtractorLinkType.M3U8) {
                         referer = response.url; quality = Qualities.Unknown.value

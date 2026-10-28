@@ -2,19 +2,44 @@ package com.thaianime
 
 import org.jsoup.nodes.Document
 import java.net.URI
+import kotlin.coroutines.cancellation.CancellationException
 
 internal data class SubaStream(val url: String, val referer: String, val label: String)
 
 /** Follows the content iframe configured by Kokora, excluding its advertising sources. */
 internal class SubaPlayer(private val get: suspend (String, String) -> Document) {
     suspend fun resolve(url: String, referer: String): List<SubaStream> {
-        val doc = get(url, referer)
-        val config = configUrl(doc) ?: return emptyList()
-        val script = get(config, doc.baseUri()).text()
-        val target = target(doc, script) ?: return emptyList()
-        return streams(get(target, doc.baseUri()))
+        var failure: Exception? = null
+        try {
+            val doc = get(url, referer)
+            val config = configUrl(doc)
+            val target = config?.let { target(doc, get(it, doc.baseUri()).text()) }
+            if (target != null) streams(get(target, doc.baseUri())).takeIf { it.isNotEmpty() }?.let { return it }
+        } catch (error: Exception) {
+            if (error is CancellationException) throw error
+            failure = error
+        }
+        // The primary player's numeric ID is also its content PHP ID (verified on both
+        // supplied episodes). Fetch fresh source HTML, never invent a media filename.
+        // player2 uses a different server; it must not be mapped to this primary route.
+        val origin = primaryOrigin(url)
+        if (origin != null) {
+            try {
+                streams(get(origin, url)).takeIf { it.isNotEmpty() }?.let { return it }
+            } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                if (failure == null) failure = error
+            }
+        }
+        failure?.let { throw it }
+        return emptyList()
     }
     companion object {
+        internal fun primaryOrigin(url: String): String? {
+            if (!isPlayer(url)) return null
+            val id = Regex("/player/(\\d+)/?").matchEntire(URI(url).path)?.groupValues?.get(1) ?: return null
+            return "https://anim-esun.com/st1//player/$id.php"
+        }
         fun isPlayer(url: String): Boolean = runCatching {
             val uri = URI(url)
             uri.host.removePrefix("www.") == "suba-anime.com" && uri.path.matches(Regex("/player2?/\\d+/?"))

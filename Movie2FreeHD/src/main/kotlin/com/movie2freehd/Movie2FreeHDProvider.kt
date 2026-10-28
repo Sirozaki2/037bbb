@@ -2,7 +2,7 @@ package com.movie2freehd
 
 import android.content.Context
 import com.lagradost.cloudstream3.*
-import com.lagradost.cloudstream3.network.CloudflareKiller
+import com.providers.network.CloudflareSession
 import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
 import com.lagradost.cloudstream3.plugins.Plugin
 import com.lagradost.cloudstream3.utils.*
@@ -26,7 +26,7 @@ class Movie2FreeHDProvider : MainAPI() {
     override var sequentialMainPage = false
     private val listingRequests = Semaphore(3)
     override val mainPage = SiteCategories.homeEntries.map { (path, title) -> mainPage(mainUrl + path, title) }
-    private val cloudflare by lazy { CloudflareKiller() }
+    private val cloudflare by lazy { CloudflareSession() }
 
     private suspend fun document(url: String, fresh: Boolean = false): org.jsoup.nodes.Document {
         val response = if (fresh) app.get(url, interceptor = cloudflare, cacheTime = 0) else app.get(url, interceptor = cloudflare)
@@ -69,7 +69,7 @@ class Movie2FreeHDProvider : MainAPI() {
             }?.players.orEmpty()
         } else for (option in Movie2FreeHDParser.options(doc)) {
             try {
-                val response = app.post("$mainUrl/wp-admin/admin-ajax.php", referer = pageUrl, cacheTime = 0,
+                val response = app.post("$mainUrl/wp-admin/admin-ajax.php", referer = pageUrl, interceptor = cloudflare, cacheTime = 0,
                     data = mapOf("action" to "doo_player_ajax", "post" to option.post, "nume" to option.number, "type" to option.type))
                 if (response.code == 200) Movie2FreeHDParser.embed(response.text, pageUrl)?.let { players += PlayerLink(it, option.label) }
             } catch (error: Exception) { if (error is CancellationException) throw error }
@@ -80,8 +80,8 @@ class Movie2FreeHDProvider : MainAPI() {
             else "Movie2FreeHD ตัวเล่นไม่คืนลิงก์ หรือยังไม่มีลิงก์สำหรับตอนนี้"
         )
         val resolver = MeePlayerResolver(
-            get = { url, ref -> app.get(url, referer = ref, cacheTime = 0).let { PlayerPage(it.url, it.text, it.code) } },
-            post = { url, ref, payload -> app.post(url, referer = ref, json = payload, cacheTime = 0).let { PlayerPage(it.url, it.text, it.code) } }
+            get = { url, ref -> app.get(url, referer = ref, interceptor = cloudflare, cacheTime = 0).let { PlayerPage(it.url, it.text, it.code) } },
+            post = { url, ref, payload -> app.post(url, referer = ref, json = payload, interceptor = cloudflare, cacheTime = 0).let { PlayerPage(it.url, it.text, it.code) } }
         )
         val emitted = mutableSetOf<String>()
         val emit: (ExtractorLink) -> Unit = { if (emitted.add(it.url)) callback(it) }

@@ -4,11 +4,11 @@ package com.moviedofree
 internal object SiteCategories {
     val entries = listOf(
         "/" to "หนังล่าสุด",
-        "/ตัวอย่างหนังใหม่" to "ตัวอย่างหนังใหม่",
+        "/%e0%b8%95%e0%b8%b1%e0%b8%a7%e0%b8%ad%e0%b8%a2%e0%b9%88%e0%b8%b2%e0%b8%87%e0%b8%ab%e0%b8%99%e0%b8%b1%e0%b8%87%e0%b9%83%e0%b8%ab%e0%b8%a1%e0%b9%88/" to "ตัวอย่างหนังใหม่",
         "/fillter-year?y=2025" to "ดูหนัง 2025",
         "/fillter-year?y=2024" to "ดูหนัง 2024",
         "/action-หนังแอคชั่น" to "Action บู้",
-        "/animation-แอนนิเมชั่น" to "Cartoon การ์ตูน",
+        "/animation-%e0%b9%81%e0%b8%ad%e0%b8%99%e0%b8%99%e0%b8%b4%e0%b9%80%e0%b8%a1%e0%b8%8a%e0%b8%b1%e0%b9%88%e0%b8%99/" to "Cartoon การ์ตูน",
         "/netflix" to "หนัง Netflix",
         "/หนังจีน" to "หนังจีน",
         "/หนังซอมบี้" to "หนังซอมบี้",
@@ -16,7 +16,7 @@ internal object SiteCategories {
         "/หนังฝรั่ง" to "หนังฝรั่ง",
         "/หนังอินเดีย" to "หนังอินเดีย",
         "/หนังเกาหลี" to "หนังเกาหลี",
-        "/หนังไทย" to "หนังไทย",
+        "/%e0%b8%ab%e0%b8%99%e0%b8%b1%e0%b8%87%e0%b9%84%e0%b8%97%e0%b8%a2/" to "หนังไทย",
         "/fillter-year?y=2023" to "2023",
         "/fillter-year?y=2022" to "2022",
         "/fillter-year?y=2021" to "2021",
@@ -65,8 +65,8 @@ internal object SiteCategories {
     // Cloudstream waits for every home row; keep the initial request set small.
     val homeEntries = listOf(
         "/" to "หนังล่าสุด",
-        "/ตัวอย่างหนังใหม่" to "ตัวอย่างหนังใหม่",
-        "/animation-แอนนิเมชั่น" to "Cartoon การ์ตูน",
-        "/หนังไทย" to "หนังไทย",
+        "/%e0%b8%95%e0%b8%b1%e0%b8%a7%e0%b8%ad%e0%b8%a2%e0%b9%88%e0%b8%b2%e0%b8%87%e0%b8%ab%e0%b8%99%e0%b8%b1%e0%b8%87%e0%b9%83%e0%b8%ab%e0%b8%a1%e0%b9%88/" to "ตัวอย่างหนังใหม่",
+        "/animation-%e0%b9%81%e0%b8%ad%e0%b8%99%e0%b8%99%e0%b8%b4%e0%b9%80%e0%b8%a1%e0%b8%8a%e0%b8%b1%e0%b9%88%e0%b8%99/" to "Cartoon การ์ตูน",
+        "/%e0%b8%ab%e0%b8%99%e0%b8%b1%e0%b8%87%e0%b9%84%e0%b8%97%e0%b8%a2/" to "หนังไทย",
     )
 }
