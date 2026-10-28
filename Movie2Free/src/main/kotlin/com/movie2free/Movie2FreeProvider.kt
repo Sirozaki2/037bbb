@@ -4,7 +4,8 @@ import android.content.Context
 import com.providers.network.ProviderBrowser
 import com.providers.network.withBrowserFallback
 import com.lagradost.cloudstream3.*
-import com.providers.network.CloudflareSession
+import com.providers.network.BrowserSession
+import com.lagradost.cloudstream3.network.WebViewResolver
 import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
 import com.lagradost.cloudstream3.plugins.Plugin
 import com.lagradost.cloudstream3.utils.*
@@ -34,10 +35,10 @@ class Movie2FreeProvider : MainAPI() {
         "/drama/" to "ดราม่า", "/horror/" to "สยองขวัญ", "/comedy/" to "ตลก",
         "/sci-fi/" to "ไซไฟ", "/thriller/" to "ระทึกขวัญ", "/cartoon/" to "การ์ตูน",
     ).map { (path, title) -> mainPage(mainUrl + path, title) }
-    private val cloudflare by lazy { CloudflareSession() }
+    private val browserSession by lazy { BrowserSession() }
     private suspend fun document(url: String, referer: String = mainUrl, fresh: Boolean = false): org.jsoup.nodes.Document {
-        val result = if (fresh) app.get(url, referer = referer, interceptor = cloudflare, cacheTime = 0)
-            else app.get(url, referer = referer, interceptor = cloudflare)
+        val result = if (fresh) app.get(url, referer = referer, interceptor = browserSession, cacheTime = 0)
+            else app.get(url, referer = referer, interceptor = browserSession)
         if (result.code !in 200..299) throw ErrorLoadingException("Movie2Free.co ไม่พร้อมใช้งาน (HTTP ${result.code})")
         return result.document.apply { setBaseUri(result.url) }
     }
@@ -50,7 +51,7 @@ class Movie2FreeProvider : MainAPI() {
     }
     override suspend fun search(query: String): List<SearchResponse> {
         if (query.isBlank()) return emptyList()
-        val response = app.get("$mainUrl/wp-admin/admin-ajax.php?action=movie_search_ajax&q=${URLEncoder.encode(query.trim(), "UTF-8")}", interceptor = cloudflare)
+        val response = app.get("$mainUrl/wp-admin/admin-ajax.php?action=movie_search_ajax&q=${URLEncoder.encode(query.trim(), "UTF-8")}", interceptor = browserSession)
         if (response.code !in 200..299) throw ErrorLoadingException("Movie2Free.co ค้นหาไม่สำเร็จ (HTTP ${response.code})")
         return Movie2FreeParser.searchResults(response.text, mainUrl).map { it.response() }
     }
@@ -68,16 +69,22 @@ class Movie2FreeProvider : MainAPI() {
         withBrowserFallback(data, callback) { emit -> loadVideoLinks(data, isCasting, subtitleCallback, emit) }
 
     private suspend fun loadVideoLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
-        val embed = Movie2FreeParser.embed(document(data, fresh = true))
-            ?: throw ErrorLoadingException("Movie2Free.co ไม่พบตัวเล่นของเรื่องนี้")
         var found = false
-        Movie2FreeResolver.resolve(embed, data, { url, parent -> document(url, parent, fresh = true) }, { stream ->
+        Movie2FreeResolver.resolvePage(data, mainUrl, { url, parent -> document(url, parent, fresh = true) }, {
+            val request = WebViewResolver(
+                interceptUrl = Movie2FreeResolver.browserPattern,
+                userAgent = null,
+                useOkhttp = false,
+                timeout = 8_000L,
+            ).resolveUsingWebView(data, referer = "$mainUrl/").first
+            request?.takeIf { it.method == "GET" }?.let { it.url.toString() to (it.header("Referer") ?: data) }
+        }, { stream ->
             callback(newExtractorLink(name, "$name ${stream.label}", stream.url, ExtractorLinkType.M3U8) {
                 referer = stream.referer; quality = Qualities.Unknown.value
                 extractorData = "fastcdn-png545"
             })
             found = true
-        }, { url, parent -> loadExtractor(url, parent, subtitleCallback) { callback(it); found = true } })
+        }, { url, parent -> loadExtractor(url, parent, subtitleCallback) { callback(it); found = true } }, { found })
         if (!found) throw ErrorLoadingException("Movie2Free.co ยังไม่มีลิงก์ที่เล่นได้ ลองตัวเล่นบนเว็บไซต์อีกครั้ง")
         return true
     }

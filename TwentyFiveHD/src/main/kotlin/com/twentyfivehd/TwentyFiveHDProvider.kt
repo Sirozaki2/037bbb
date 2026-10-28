@@ -4,7 +4,7 @@ import android.content.Context
 import com.providers.network.ProviderBrowser
 import com.providers.network.withBrowserFallback
 import com.lagradost.cloudstream3.*
-import com.providers.network.CloudflareSession
+import com.providers.network.BrowserSession
 import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
 import com.lagradost.cloudstream3.plugins.Plugin
 import com.lagradost.cloudstream3.utils.*
@@ -31,9 +31,9 @@ class TwentyFiveHDProvider : MainAPI() {
     override var sequentialMainPageDelay = 100L
     override val mainPage = SiteCategories.homeEntries.map { (path, title) -> mainPage(mainUrl + path, title) }
 
-    private val cloudflare by lazy { CloudflareSession() }
+    private val browserSession by lazy { BrowserSession() }
     private suspend fun document(url: String, fresh: Boolean = false): org.jsoup.nodes.Document {
-        val response = if (fresh) app.get(url, interceptor = cloudflare, cacheTime = 0) else app.get(url, interceptor = cloudflare)
+        val response = if (fresh) app.get(url, interceptor = browserSession, cacheTime = 0) else app.get(url, interceptor = browserSession)
         if (response.code !in 200..299) throw ErrorLoadingException("$name โหลดหน้าเว็บไม่ได้ (HTTP ${response.code})")
         return response.document.apply { setBaseUri(response.url) }
     }
@@ -57,7 +57,7 @@ class TwentyFiveHDProvider : MainAPI() {
 
     override suspend fun load(url: String): LoadResponse {
         val detail = TwentyFiveParser.detail(document(url))
-        val bootstrap = ZmdbResolver.bootstrap(app.get(detail.embed, referer = url, interceptor = cloudflare, cacheTime = 0).text)
+        val bootstrap = ZmdbResolver.bootstrap(app.get(detail.embed, referer = url, interceptor = browserSession, cacheTime = 0).text)
         if (bootstrap.path("content").path("mediaType").asText() == "tv") {
             val episodes = ZmdbResolver.episodes(bootstrap, detail.embed).map {
                 newEpisode(PlaybackContext(it.url, url).encode()) { name = it.name; season = it.season; episode = it.number }
@@ -79,7 +79,7 @@ class TwentyFiveHDProvider : MainAPI() {
 
     private suspend fun loadVideoLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
         val resolver = ZmdbResolver { url, referer, headers ->
-            val response = app.get(url, referer = referer, headers = headers, interceptor = cloudflare, cacheTime = 0)
+            val response = app.get(url, referer = referer, headers = headers, interceptor = browserSession, cacheTime = 0)
             WebPage(response.url, response.text, response.code)
         }
         var found = false

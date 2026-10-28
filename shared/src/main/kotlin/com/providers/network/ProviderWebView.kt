@@ -9,8 +9,6 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.os.SystemClock
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -33,19 +31,16 @@ import android.widget.Toast
 internal class ProviderWebView(
     private val activity: Activity,
     private val url: String,
-    private val cleared: (() -> Boolean)? = null,
+    private val reason: String? = null,
     private val onUserAgent: (String) -> Unit = {},
-    private val finished: (verified: Boolean, cancelled: Boolean) -> Unit = { _, _ -> },
+    private val finished: () -> Unit = {},
 ) {
     internal val dialog = Dialog(activity)
     internal val webView = WebView(activity)
-    private val handler = Handler(Looper.getMainLooper())
     private val root = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL; setBackgroundColor(Color.rgb(24, 24, 24)) }
     private val frame = FrameLayout(activity)
     private var customView: View? = null
     private var customCallback: WebChromeClient.CustomViewCallback? = null
-    private var verified = false
-    private var cancelled = true
     private var disposed = false
     private var lifecycleRegistered = false
     private val cursor = RemoteCursor(activity, webView)
@@ -58,26 +53,22 @@ internal class ProviderWebView(
         override fun onActivityStopped(target: Activity) = Unit
         override fun onActivitySaveInstanceState(target: Activity, state: Bundle) = Unit
     }
-    private val poll = object : Runnable {
-        override fun run() {
-            if (disposed) return
-            if (cleared?.invoke() == true) {
-                verified = true
-                cancelled = false
-                dialog.dismiss()
-            } else handler.postDelayed(this, 500)
-        }
-    }
-    private val timeout = Runnable { cancelled = false; dialog.dismiss() }
 
     init {
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
         dialog.setContentView(root)
         val title = TextView(activity).apply {
-            text = if (cleared != null) "ยืนยัน Cloudflare แล้วแอปจะลองโหลดอีกครั้ง (75 วินาที)" else "เว็บสำรอง — เลือกตัวเล่นและกดเล่นในหน้าเว็บ"
+            text = "เว็บสำรอง — เลือกตัวเล่นและกดเล่นในหน้าเว็บ"
             setTextColor(Color.WHITE); setPadding(12, 8, 12, 4)
         }
         root.addView(title)
+        reason?.let { message ->
+            root.addView(TextView(activity).apply {
+                text = message
+                setTextColor(Color.LTGRAY); setPadding(12, 0, 12, 4)
+                maxLines = 3
+            })
+        }
         root.addView(TextView(activity).apply {
             text = Uri.parse(url).host.orEmpty() + " • รีโมต: เปิดเคอร์เซอร์ → ลูกศรเลื่อน → OK กด → Back กลับปุ่ม"
             setTextColor(Color.LTGRAY); setPadding(12, 0, 12, 4)
@@ -152,10 +143,6 @@ internal class ProviderWebView(
             activity.application.registerActivityLifecycleCallbacks(lifecycle)
             lifecycleRegistered = true
             webView.loadUrl(url)
-            if (cleared != null) {
-                handler.post(poll)
-                handler.postDelayed(timeout, 75_000)
-            }
         } catch (error: Exception) {
             dispose()
             throw error
@@ -177,14 +164,13 @@ internal class ProviderWebView(
     private fun dispose() {
         if (disposed) return
         disposed = true
-        handler.removeCallbacksAndMessages(null)
         if (lifecycleRegistered) activity.application.unregisterActivityLifecycleCallbacks(lifecycle)
         hideFullscreen()
         CookieManager.getInstance().flush()
         frame.removeView(webView)
         webView.stopLoading()
         webView.destroy()
-        finished(verified, cancelled)
+        finished()
     }
 
     companion object {
@@ -195,7 +181,7 @@ internal class ProviderWebView(
     }
 }
 
-/** Pointer for WebView controls that cannot receive DPAD focus (including challenge widgets). */
+/** Pointer for WebView controls that cannot receive DPAD focus. */
 internal class RemoteCursor(activity: Activity, private val target: WebView) : View(activity) {
     var exit: () -> Unit = {}
     internal var pointerX = 0f

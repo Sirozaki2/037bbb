@@ -8,7 +8,7 @@ import kotlin.coroutines.cancellation.CancellationException
 internal suspend fun withBrowserFallback(
     pageUrl: String,
     callback: (ExtractorLink) -> Unit,
-    openBrowser: suspend (String) -> Boolean = ProviderBrowser::open,
+    openBrowser: (suspend (String) -> Boolean)? = null,
     extract: suspend ((ExtractorLink) -> Unit) -> Boolean,
 ): Boolean {
     var emitted = false
@@ -20,10 +20,11 @@ internal suspend fun withBrowserFallback(
         failure = error
     }
     if (emitted) return true
-    val opened = openBrowser(pageUrl)
+    val reason = failure?.message?.takeIf { it.isNotBlank() }
+        ?: "หน้าเว็บไม่ส่งลิงก์วิดีโอที่ตัวอ่านรองรับ"
+    val opened = openBrowser?.invoke(pageUrl) ?: ProviderBrowser.open(pageUrl, reason)
     throw ErrorLoadingException(
-        if (opened) "เปิดเว็บสำรองแล้ว กรุณาเลือกตัวเล่นและกดเล่นในหน้าเว็บ"
-        else "ยังอ่านลิงก์วิดีโอไม่ได้ เปิดรูปเฟืองของปลั๊กอินเพื่อดูผ่านเว็บ / ยืนยัน Cloudflare" +
-            (failure?.message?.let { " ($it)" } ?: "")
+        (if (opened) "เปิดเว็บสำรองแล้ว กรุณาเลือกตัวเล่นและกดเล่นในหน้าเว็บ"
+        else "ยังอ่านลิงก์วิดีโอไม่ได้ เปิดรูปเฟืองของปลั๊กอินเพื่อดูผ่านเว็บ") + " ($reason)"
     )
 }

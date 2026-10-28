@@ -3,7 +3,7 @@ dependencies {
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
 }
 
-version = 6
+version = 7
 
 cloudstream {
     language = "th"

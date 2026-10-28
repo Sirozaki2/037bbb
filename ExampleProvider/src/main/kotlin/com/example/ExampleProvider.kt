@@ -1,7 +1,7 @@
 package com.example
 
 import com.lagradost.cloudstream3.*
-import com.providers.network.CloudflareSession
+import com.providers.network.BrowserSession
 import com.providers.network.withBrowserFallback
 import com.lagradost.cloudstream3.utils.*
 import java.net.URLEncoder
@@ -24,9 +24,9 @@ class ExampleProvider : MainAPI() {
     override var sequentialMainPageDelay = 100L
     override val mainPage = SiteCategories.homeEntries.map { (path, title) -> mainPage(mainUrl + path, title) }
 
-    private val cloudflare by lazy { CloudflareSession() }
+    private val browserSession by lazy { BrowserSession() }
     private suspend fun document(url: String, fresh: Boolean = false): org.jsoup.nodes.Document {
-        val response = if (fresh) app.get(url, interceptor = cloudflare, cacheTime = 0) else app.get(url, interceptor = cloudflare)
+        val response = if (fresh) app.get(url, interceptor = browserSession, cacheTime = 0) else app.get(url, interceptor = browserSession)
         if (response.code !in 200..299) throw ErrorLoadingException("$name โหลดหน้าเว็บไม่ได้ (HTTP ${response.code})")
         return response.document.apply { setBaseUri(response.url) }
     }
@@ -117,7 +117,7 @@ class ExampleProvider : MainAPI() {
 
         val resolver = StreamHlsResolver(
             get = { url, referer ->
-                val response = app.get(url, referer = referer, interceptor = cloudflare, cacheTime = 0)
+                val response = app.get(url, referer = referer, interceptor = browserSession, cacheTime = 0)
                 PlayerPage(response.url, response.text)
             },
             post = { url, referer, payload ->
@@ -129,7 +129,7 @@ class ExampleProvider : MainAPI() {
                         "X-Requested-With" to "XMLHttpRequest"
                     ),
                     json = payload,
-                    interceptor = cloudflare,
+                    interceptor = browserSession,
                     cacheTime = 0
                 )
                 PlayerPage(response.url, response.text)

@@ -24,58 +24,47 @@ import java.util.concurrent.TimeUnit
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28], manifest = Config.NONE)
 class ProviderWebViewTest {
-    @Test fun `clearance closes visible window once without removing existing cookies`() {
+    @Test fun `web fallback retains cookies agent and failure reason until explicitly closed`() {
         val controller = Robolectric.buildActivity(Activity::class.java).setup()
         val activity = controller.get()
         CookieManager.getInstance().setCookie("https://catalog.example", "session=keep")
-        var cleared = false
         var callbacks = 0
         var ua: String? = null
-        val browser = ProviderWebView(activity, "https://catalog.example/movie", { cleared }, { ua = it }) { verified, cancelled ->
-            assertTrue(verified); assertFalse(cancelled); callbacks++
-        }
+        val browser = ProviderWebView(activity, "https://catalog.example/ep-2", "โหลดหน้าเว็บไม่ได้ (HTTP 403)", { ua = it }) { callbacks++ }
         browser.show()
         assertTrue(browser.dialog.isShowing)
-        assertEquals("https://catalog.example/movie", shadowOf(browser.webView).lastLoadedUrl)
+        assertEquals("https://catalog.example/ep-2", shadowOf(browser.webView).lastLoadedUrl)
         assertTrue(browser.webView.settings.javaScriptEnabled)
         assertTrue(browser.webView.settings.domStorageEnabled)
         assertFalse(ua.isNullOrBlank())
         assertEquals("session=keep", CookieManager.getInstance().getCookie("https://catalog.example"))
-        cleared = true
-        shadowOf(Looper.getMainLooper()).idleFor(1, TimeUnit.SECONDS)
-        assertFalse(browser.dialog.isShowing)
+        val labels = descendants(browser.dialog.window!!.decorView).filterIsInstance<android.widget.TextView>().map { it.text.toString() }
+        assertTrue(labels.contains("โหลดหน้าเว็บไม่ได้ (HTTP 403)"))
+        assertFalse(labels.any { it.contains("ยืนยัน Cloudflare") })
+        shadowOf(Looper.getMainLooper()).idleFor(90, TimeUnit.SECONDS)
+        assertTrue(browser.dialog.isShowing)
+        assertEquals(0, callbacks)
+        browser.dismiss()
+        shadowOf(Looper.getMainLooper()).idle()
         assertEquals(1, callbacks)
         controller.destroy()
         shadowOf(Looper.getMainLooper()).idleFor(90, TimeUnit.SECONDS)
         assertEquals(1, callbacks)
     }
 
-    @Test fun `verification times out and stops polling while watch mode stays open`() {
+    @Test fun `Activity destruction releases the web fallback once`() {
         val controller = Robolectric.buildActivity(Activity::class.java).setup()
-        var completed: Pair<Boolean, Boolean>? = null
-        val verification = ProviderWebView(controller.get(), "https://catalog.example", { false }) { ok, cancelled -> completed = ok to cancelled }
-        verification.show()
-        shadowOf(Looper.getMainLooper()).idleFor(76, TimeUnit.SECONDS)
-        assertFalse(verification.dialog.isShowing)
-        assertEquals(false to false, completed)
-        val watch = ProviderWebView(controller.get(), "https://catalog.example/movie")
-        watch.show()
-        shadowOf(Looper.getMainLooper()).idleFor(90, TimeUnit.SECONDS)
-        assertTrue(watch.dialog.isShowing)
-        controller.destroy()
-        assertFalse(watch.dialog.isShowing)
-    }
-
-    @Test fun `closing verification is cancellation and Activity destruction releases the dialog`() {
-        val controller = Robolectric.buildActivity(Activity::class.java).setup()
-        var completed: Pair<Boolean, Boolean>? = null
-        val browser = ProviderWebView(controller.get(), "https://catalog.example", { false }) { ok, cancelled -> completed = ok to cancelled }
+        var callbacks = 0
+        val browser = ProviderWebView(controller.get(), "https://catalog.example") { callbacks++ }
         browser.show()
         controller.destroy()
         shadowOf(Looper.getMainLooper()).idle()
         assertFalse(browser.dialog.isShowing)
-        assertEquals(false to true, completed)
+        assertEquals(1, callbacks)
     }
+
+    private fun descendants(view: View): List<View> = listOf(view) +
+        if (view is ViewGroup) (0 until view.childCount).flatMap { descendants(view.getChildAt(it)) } else emptyList()
 
     @Test fun `remote pointer clicks at moved coordinates stays in bounds and exits with Back`() {
         val controller = Robolectric.buildActivity(Activity::class.java).setup()

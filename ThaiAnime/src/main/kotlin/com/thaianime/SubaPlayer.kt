@@ -35,6 +35,8 @@ internal class SubaPlayer(private val get: suspend (String, String) -> Document)
         return emptyList()
     }
     companion object {
+        // Capture the site's content-player iframe when the episode is rendered by JavaScript.
+        val capturePattern = Regex("""^https?://(?:www\.)?suba-anime\.com/player2?/\d+/?(?:\?[^#]*)?$""")
         internal fun primaryOrigin(url: String): String? {
             if (!isPlayer(url)) return null
             val id = Regex("/player/(\\d+)/?").matchEntire(URI(url).path)?.groupValues?.get(1) ?: return null

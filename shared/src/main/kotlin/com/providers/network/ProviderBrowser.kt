@@ -13,7 +13,6 @@ import com.lagradost.cloudstream3.plugins.Plugin
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.resume
-import kotlin.coroutines.cancellation.CancellationException
 
 internal object ProviderBrowser {
     private val showing = AtomicBoolean(false)
@@ -23,7 +22,7 @@ internal object ProviderBrowser {
         plugin.openSettings = {
             val activity = CommonActivity.activity
             if (activity != null && !activity.isFinishing && !activity.isDestroyed) {
-                AlertDialog.Builder(activity).setTitle("เปิดเว็บ / ยืนยัน Cloudflare")
+                AlertDialog.Builder(activity).setTitle("เปิดเว็บสำรอง")
                     .setItems(sites.map { it.first }.toTypedArray()) { _, index ->
                         watch(sites[index].second)
                     }.setNegativeButton("ปิด", null).show()
@@ -31,32 +30,16 @@ internal object ProviderBrowser {
         }
     }
 
-    suspend fun verify(url: String, cleared: () -> Boolean): Boolean = suspendCancellableCoroutine { continuation ->
-        val handler = Handler(Looper.getMainLooper())
-        var browser: ProviderWebView? = null
-        continuation.invokeOnCancellation { handler.post { browser?.dismiss() } }
-        handler.post {
-            if (!continuation.isActive) return@post
-            browser = show(url, cleared) { verified, cancelled ->
-                if (continuation.isActive) {
-                    if (cancelled) continuation.cancel(CancellationException("ปิดหน้ายืนยัน Cloudflare"))
-                    else continuation.resume(verified)
-                }
-            }
-            if (browser == null && continuation.isActive) continuation.resume(false)
-        }
-    }
-
-    suspend fun open(url: String): Boolean = suspendCancellableCoroutine { continuation ->
+    suspend fun open(url: String, reason: String? = null): Boolean = suspendCancellableCoroutine { continuation ->
         Handler(Looper.getMainLooper()).post {
-            if (continuation.isActive) continuation.resume(watch(url))
+            if (continuation.isActive) continuation.resume(watch(url, reason))
         }
     }
 
-    private fun watch(url: String): Boolean {
+    private fun watch(url: String, reason: String? = null): Boolean {
         val activity = CommonActivity.activity ?: return false
         if (activity.isFinishing || activity.isDestroyed || showing.get() || !ProviderWebView.isWebUrl(url)) return false
-        if (show(url, null) { _, _ -> } != null) return true
+        if (show(url, reason) != null) return true
         // Some TV firmware has no usable WebView. A separately installed browser can still play the page.
         return openExternal(activity, url)
     }
@@ -76,15 +59,13 @@ internal object ProviderBrowser {
         }
     }
 
-    private fun show(url: String, cleared: (() -> Boolean)?, done: (Boolean, Boolean) -> Unit): ProviderWebView? {
+    private fun show(url: String, reason: String?): ProviderWebView? {
         val activity = CommonActivity.activity ?: return null
         if (!ProviderWebView.isWebUrl(url) || activity.isFinishing || activity.isDestroyed || !showing.compareAndSet(false, true)) return null
-        var started = false
         return try {
-            ProviderWebView(activity, url, cleared, { WebViewResolver.webViewUserAgent = it }) { verified, cancelled ->
+            ProviderWebView(activity, url, reason, { WebViewResolver.webViewUserAgent = it }) {
                 showing.set(false)
-                if (started) done(verified, cancelled)
-            }.also { it.show(); started = true }
+            }.also { it.show() }
         } catch (_: Exception) {
             showing.set(false)
             null
