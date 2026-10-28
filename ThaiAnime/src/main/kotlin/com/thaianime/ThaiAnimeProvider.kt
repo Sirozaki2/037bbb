@@ -19,7 +19,8 @@ internal object AnimeNetwork {
 @CloudstreamPlugin
 class ThaiAnimePlugin : Plugin() {
     override fun load(context: Context) {
-        Site.enabled.forEach { registerMainAPI(ThaiAnimeProvider(it)) }
+        (Site.enabled.map { ThaiAnimeProvider(it) } + TeamAnimeSite.values().map { TeamAnimeProvider(it) })
+            .sortedBy { it.name.lowercase() }.forEach { registerMainAPI(it) }
     }
 }
 
