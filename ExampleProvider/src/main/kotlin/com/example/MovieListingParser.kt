@@ -1,5 +1,6 @@
 package com.example
 
+import com.providers.network.CatalogPagination
 import org.jsoup.nodes.Document
 import java.net.URI
 
@@ -11,12 +12,7 @@ internal data class MovieListing(val title: String, val url: String, val posterU
 }
 
 internal object MovieListingParser {
-    fun pageUrl(baseUrl: String, page: Int): String {
-        val uri = URI(baseUrl)
-        val path = uri.rawPath.trimEnd('/').replace(Regex("/page/\\d+$"), "")
-        return "${uri.scheme}://${uri.rawAuthority}$path/" + (if (page > 1) "page/$page/" else "") +
-            (uri.rawQuery?.let { "?$it" } ?: "")
-    }
+    fun pageUrl(baseUrl: String, page: Int): String = CatalogPagination.path(baseUrl, page)
 
     fun parse(document: Document): List<MovieListing> = document.select(
         "div.moviefilm, div.postbox, article, div.movie-box, div.item, div.col-movie"
@@ -39,9 +35,8 @@ internal object MovieListingParser {
         MovieListing(title, url, poster)
     }.distinctBy { it.url }
 
-    fun hasNextPage(document: Document): Boolean = document.select(
-        "link[rel=next][href], a[rel=next][href], a.nextpostslink[href]"
-    ).any { it.absUrl("href").isHttpUrl() && it.attr("href") != "#" }
+    fun hasNextPage(document: Document): Boolean =
+        CatalogPagination.hasNext(document, "link[rel=next][href], a[rel=next][href], a.nextpostslink[href]")
 
     private fun String.isHttpUrl(): Boolean = startsWith("https://") || startsWith("http://")
 }

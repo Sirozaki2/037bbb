@@ -1,9 +1,9 @@
 package com.movie2freehd
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.providers.network.CdnFailoverInterceptor
 import okhttp3.Interceptor
 import okhttp3.Response
-import java.io.IOException
 import java.net.URI
 
 internal class MeeRouting private constructor(private val id: String, private val origins: List<String>) {
@@ -35,19 +35,7 @@ internal class MeeRouting private constructor(private val id: String, private va
     }
 }
 
-internal class MeeRoutingInterceptor(private val routing: MeeRouting) : Interceptor {
-    override fun intercept(chain: Interceptor.Chain): Response {
-        val request = chain.request()
-        val urls = routing.urls(request.url.toString())
-        if (urls.isEmpty()) return chain.proceed(request)
-        var error: IOException? = null
-        for ((index, url) in urls.withIndex()) {
-            try {
-                val response = chain.proceed(request.newBuilder().url(url).build())
-                if (response.isSuccessful || index == urls.lastIndex) return response
-                response.close()
-            } catch (failure: IOException) { error = failure }
-        }
-        throw error ?: IOException("ไม่พบ CDN ที่พร้อมใช้งาน")
-    }
+internal class MeeRoutingInterceptor(routing: MeeRouting) : Interceptor {
+    private val delegate = CdnFailoverInterceptor(routing::urls)
+    override fun intercept(chain: Interceptor.Chain): Response = delegate.intercept(chain)
 }

@@ -1,5 +1,6 @@
 package com.twentyfivehd
 
+import com.providers.network.CatalogPagination
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 
@@ -34,5 +35,8 @@ internal object TwentyFiveParser {
         )
     }
 
-    fun hasNext(document: Document): Boolean = document.select("a.next.page-numbers[href]").isNotEmpty()
+    fun pageUrl(url: String, page: Int): String = if (page <= 1) url else CatalogPagination.path(url, page)
+
+    fun hasNext(document: Document): Boolean =
+        CatalogPagination.hasNext(document, "a.next.page-numbers[href]")
 }

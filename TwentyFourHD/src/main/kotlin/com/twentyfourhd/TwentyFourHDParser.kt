@@ -2,6 +2,7 @@ package com.twentyfourhd
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.core.Base64Variants
+import com.providers.network.CatalogPagination
 import org.jsoup.nodes.Document
 import java.net.URI
 
@@ -13,6 +14,10 @@ internal object TwentyFourHDParser {
     private val json = ObjectMapper()
     private val number = Regex("(?:EP\\.?|ตอนที่)\\s*(\\d+)", RegexOption.IGNORE_CASE)
     private val cssUrl = Regex("""background-image\s*:\s*url\(["']?([^"')]+)["']?\)""", RegexOption.IGNORE_CASE)
+
+    private val cssRule = Regex("([^{}]+)\\{([^{}]*)}")
+    private val cardClass = Regex("\\.(e-loop-item-\\d+)(?![\\w-])")
+    private val cardId = Regex("e-loop-item-\\d+")
 
     fun httpUrl(base: String, value: String): String? = runCatching {
         if (value.isBlank() || value.contains("_files/") || value.startsWith("data:")) return null
@@ -28,16 +33,22 @@ internal object TwentyFourHDParser {
             val lazyCss = runCatching { String(Base64Variants.getDefaultVariant().decode(style.attr("data-vip24hd-css")), Charsets.UTF_8) }.getOrDefault("")
             style.data() + "\n" + lazyCss
         }
+        // Index each style rule once instead of scanning the stylesheet for every card.
+        val posters = mutableMapOf<String, String>()
+        cssRule.findAll(styles).forEach { rule ->
+            val image = cssUrl.find(rule.groupValues[2])?.groupValues?.get(1) ?: return@forEach
+            cardClass.findAll(rule.groupValues[1]).forEach { match ->
+                posters.getOrPut(match.groupValues[1]) { image }
+            }
+        }
         return listing(doc).select(".e-loop-item, article.elementor-post").mapNotNull { e ->
             val a = e.selectFirst("a.e-con[href], .elementor-post__title a[href]") ?: return@mapNotNull null
             val url = httpUrl(doc.baseUri(), a.attr("href")) ?: return@mapNotNull null
             val title = e.select(".elementor-heading-title").lastOrNull()?.text()?.trim()
                 ?: e.selectFirst(".elementor-post__title")?.text()?.trim().orEmpty()
             if (title.isBlank()) return@mapNotNull null
-            val id = e.classNames().firstOrNull { it.matches(Regex("e-loop-item-\\d+")) }
-            // Each card has its own CSS rule; selecting the first background globally repeats one poster.
-            val block = id?.let { Regex("\\.${Regex.escape(it)}\\s[^{}]+\\{[^{}]*\\}").findAll(styles).map { it.value }.firstOrNull { cssUrl.containsMatchIn(it) } }
-            val image: String? = block?.let { cssUrl.find(it)?.groupValues?.get(1) }
+            val id = e.classNames().firstOrNull { cardId.matches(it) }
+            val image: String? = posters[id]
                 ?: e.selectFirst("img")?.let { img ->
                     listOf("data-src", "data-lazy-src", "src").firstNotNullOfOrNull { httpUrl(doc.baseUri(), img.attr(it)) }
                 }
@@ -52,7 +63,9 @@ internal object TwentyFourHDParser {
             val n = number.find(e.text())?.groupValues?.get(1)?.toIntOrNull() ?: return@mapNotNull null
             val players = listOf("data-link", "data-link2").mapNotNull { httpUrl(doc.baseUri(), e.attr(it)) }.distinct()
             if (players.isEmpty()) null else SiteEpisode(n, e.text(), players)
-        }.distinctBy { it.number }.sortedBy { it.number }
+        }.groupBy { it.number }.values.map { rows ->
+            rows.first().copy(players = rows.flatMap { it.players }.distinct())
+        }.sortedBy { it.number }
         val players = (doc.select("a[target=box-player][href]").map { it.attr("href") } +
             doc.select("iframe[name=box-player]").flatMap { listOf(it.attr("data-src"), it.attr("src")) })
             .mapNotNull { httpUrl(doc.baseUri(), it) }.distinct()
@@ -72,11 +85,7 @@ internal object TwentyFourHDParser {
         return "https://$host/$id/playlist.m3u8"
     }
 
-    fun pageUrl(url: String, page: Int): String {
-        if (page <= 1) return url
-        val parts = url.split('?', limit = 2)
-        return parts[0].trimEnd('/') + "/page/$page/" + (parts.getOrNull(1)?.let { "?$it" } ?: "")
-    }
+    fun pageUrl(url: String, page: Int): String = if (page <= 1) url else CatalogPagination.path(url, page)
 
     fun pageUrl(doc: Document, page: Int): String {
         if (page <= 1) return doc.baseUri()
@@ -89,6 +98,6 @@ internal object TwentyFourHDParser {
 
     fun hasNext(doc: Document): Boolean = listing(doc).select("a.next[href], a[rel=next][href], [data-next-page]").any { e ->
         val value = if (e.hasAttr("data-next-page")) e.attr("data-next-page") else e.attr("href")
-        value.isNotBlank() && value != "#" && httpUrl(doc.baseUri(), value)?.let { it != doc.baseUri() } == true
+        CatalogPagination.isNext(doc.baseUri(), value)
     }
 }

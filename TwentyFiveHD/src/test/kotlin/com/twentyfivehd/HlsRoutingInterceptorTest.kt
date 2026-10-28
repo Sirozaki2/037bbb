@@ -15,6 +15,7 @@ class HlsRoutingInterceptorTest {
           {"ID":"b","URI-REPLACEMENT":{"HOST":"b.example"}}
         ]}""")
     private class FakeChain(val input: Request, val responses: List<Int>) : Interceptor.Chain {
+        private val testCall = OkHttpClient().newCall(input)
         val requests = mutableListOf<Request>()
         override fun request() = input
         override fun proceed(request: Request): Response {
@@ -25,7 +26,7 @@ class HlsRoutingInterceptorTest {
                 .message("Synthetic").body("media".toResponseBody()).build()
         }
         override fun connection(): Connection? = null
-        override fun call(): Call = error("Unused")
+        override fun call(): Call = testCall
         override fun connectTimeoutMillis() = 1000
         override fun readTimeoutMillis() = 1000
         override fun writeTimeoutMillis() = 1000
@@ -50,5 +51,12 @@ class HlsRoutingInterceptorTest {
         val chain = FakeChain(Request.Builder().url(url).build(), listOf(200))
         HlsRoutingInterceptor(routing).intercept(chain).close()
         assertEquals(url, chain.requests.single().url.toString())
+    }
+
+    @Test fun `failed advertised mirrors still try the original signed media URL`() {
+        val original = "https://gateway.example$path?sig=keep&gw_enc=keep"
+        val chain = FakeChain(Request.Builder().url(original).build(), listOf(503, 403, 206))
+        HlsRoutingInterceptor(routing).intercept(chain).use { assertEquals(206, it.code) }
+        assertEquals(original, chain.requests.last().url.toString())
     }
 }

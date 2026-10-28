@@ -25,6 +25,6 @@ internal suspend fun withBrowserFallback(
     val opened = openBrowser?.invoke(pageUrl) ?: ProviderBrowser.open(pageUrl, reason)
     throw ErrorLoadingException(
         (if (opened) "เปิดเว็บสำรองแล้ว กรุณาเลือกตัวเล่นและกดเล่นในหน้าเว็บ"
-        else "ยังอ่านลิงก์วิดีโอไม่ได้ เปิดรูปเฟืองของปลั๊กอินเพื่อดูผ่านเว็บ") + " ($reason)"
+        else "ยังอ่านลิงก์วิดีโอไม่ได้ กรุณาลองตัวเล่นอื่นหรือเปิดหน้าตอนในเบราว์เซอร์") + " ($reason)"
     )
 }

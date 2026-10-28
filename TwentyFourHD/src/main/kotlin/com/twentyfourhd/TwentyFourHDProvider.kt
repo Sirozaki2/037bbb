@@ -1,7 +1,6 @@
 package com.twentyfourhd
 
 import android.content.Context
-import com.providers.network.ProviderBrowser
 import com.providers.network.withBrowserFallback
 import com.lagradost.cloudstream3.*
 import com.providers.network.BrowserSession
@@ -9,6 +8,8 @@ import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
 import com.lagradost.cloudstream3.plugins.Plugin
 import com.lagradost.cloudstream3.utils.*
 import java.net.URLEncoder
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import java.util.concurrent.CancellationException
 
 @CloudstreamPlugin
@@ -16,7 +17,6 @@ class TwentyFourHDPlugin : Plugin() {
     override fun load(context: Context) {
         val provider = TwentyFourHDProvider()
         registerMainAPI(provider)
-        ProviderBrowser.install(this, listOf(provider.name to provider.mainUrl))
     }
 }
 
@@ -27,8 +27,8 @@ class TwentyFourHDProvider : MainAPI() {
     override val hasMainPage = true
     override val hasDownloadSupport = true
     override val supportedTypes = setOf(TvType.Movie, TvType.TvSeries)
-    override var sequentialMainPage = true
-    override var sequentialMainPageDelay = 100L
+    override var sequentialMainPage = false
+    private val listingRequests = Semaphore(3)
     override val mainPage = SiteCategories.homeEntries.map { (path, title) -> mainPage(mainUrl + path, title) }
     private val browserSession by lazy { BrowserSession() }
     private suspend fun document(url: String, fresh: Boolean = false): org.jsoup.nodes.Document {
@@ -43,10 +43,10 @@ class TwentyFourHDProvider : MainAPI() {
         newMovieSearchResponse(title, url, TvType.Movie) { posterUrl = poster; posterHeaders = mapOf("Referer" to "$mainUrl/") }
     }
 
-    override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
+    override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse = listingRequests.withPermit {
         val first = document(request.data)
         val doc = if (page <= 1) first else document(TwentyFourHDParser.pageUrl(first, page))
-        return newHomePageResponse(listOf(HomePageList(request.name, TwentyFourHDParser.cards(doc).map { it.response() })), TwentyFourHDParser.hasNext(doc))
+        newHomePageResponse(listOf(HomePageList(request.name, TwentyFourHDParser.cards(doc).map { it.response() })), TwentyFourHDParser.hasNext(doc))
     }
 
     override suspend fun search(query: String): List<SearchResponse> = TwentyFourHDParser.cards(document("$mainUrl/?s=${URLEncoder.encode(query, "UTF-8")}")).map { it.response() }

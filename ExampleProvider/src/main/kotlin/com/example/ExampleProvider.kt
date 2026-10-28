@@ -5,6 +5,8 @@ import com.providers.network.BrowserSession
 import com.providers.network.withBrowserFallback
 import com.lagradost.cloudstream3.utils.*
 import java.net.URLEncoder
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlin.coroutines.cancellation.CancellationException
 
 class ExampleProvider : MainAPI() {
@@ -20,8 +22,8 @@ class ExampleProvider : MainAPI() {
         TvType.Anime
     )
 
-    override var sequentialMainPage = true
-    override var sequentialMainPageDelay = 100L
+    override var sequentialMainPage = false
+    private val listingRequests = Semaphore(3)
     override val mainPage = SiteCategories.homeEntries.map { (path, title) -> mainPage(mainUrl + path, title) }
 
     private val browserSession by lazy { BrowserSession() }
@@ -34,12 +36,12 @@ class ExampleProvider : MainAPI() {
     override suspend fun getMainPage(
         page: Int,
         request: MainPageRequest
-    ): HomePageResponse {
+    ): HomePageResponse = listingRequests.withPermit {
         val url = MovieListingParser.pageUrl(request.data, page)
         val document = document(url)
         val home = MovieListingParser.parse(document).map { it.toSearchResult() }
 
-        return newHomePageResponse(
+        newHomePageResponse(
             list = HomePageList(
                 name = request.name,
                 list = home,

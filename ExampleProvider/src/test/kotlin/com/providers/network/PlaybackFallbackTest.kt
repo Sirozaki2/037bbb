@@ -41,7 +41,7 @@ class PlaybackFallbackTest {
         }.exceptionOrNull()
         assertTrue(error is ErrorLoadingException)
         assertTrue(error!!.message.orEmpty().contains("HTTP 403"))
-        assertTrue(error.message.orEmpty().contains("รูปเฟือง"))
+        assertTrue(error.message.orEmpty().contains("เปิดหน้าตอนในเบราว์เซอร์"))
     } }
 
     @Test fun `failure cause remains visible after the fallback successfully opens`() { runBlocking {

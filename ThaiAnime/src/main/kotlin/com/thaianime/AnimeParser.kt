@@ -1,5 +1,6 @@
 package com.thaianime
 
+import com.providers.network.CatalogPagination
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -14,7 +15,7 @@ internal enum class Site(val base: String, val label: String) {
     WAKU("https://anime-waku.com", "Anime-Waku");
 
     companion object {
-        val enabled = listOf(NEKO, RUKA, SUBA, WAKU)
+        val enabled = listOf(NEKO, RUKA, SUBA)
     }
 }
 internal data class AnimeCard(val title: String, val url: String, val poster: String?, val movie: Boolean)
@@ -107,18 +108,13 @@ internal object AnimeParser {
             a.attr("rel").split(' ').contains("next") || text in listOf("ถัดไป", "หน้าถัดไป", "Next", "Next »", "»", "Next page") || a.hasClass("next")
         } ?: return null
         val href = url(doc.baseUri(), link.attr("href")) ?: return null
-        return href.takeIf { URI(it).host.removePrefix("www.") == URI(site.base).host.removePrefix("www.") && it != doc.baseUri() }
+        return href.takeIf { URI(it).host.removePrefix("www.") == URI(site.base).host.removePrefix("www.") && CatalogPagination.isNext(doc.baseUri(), it) }
     }
     fun pageUrl(site: Site, base: String, page: Int): String {
         if (page <= 1) return base
         if (site == Site.SEVEN) return base.replace(Regex("&number=\\d+"), "").substringBefore('#') + "&number=$page"
-        val uri = URI(base)
-        if (site == Site.RUKA || site == Site.WAKU) {
-            val path = uri.rawPath.replace(Regex("/page/\\d+/?$"), "/").trimEnd('/') + "/page/$page/"
-            return "${uri.scheme}://${uri.rawAuthority}$path" + (uri.rawQuery?.let { "?$it" } ?: "")
-        }
-        val args = uri.rawQuery.orEmpty().split('&').filter { it.isNotBlank() && it.substringBefore('=') != "page" } + "page=$page"
-        return "${uri.scheme}://${uri.rawAuthority}${uri.rawPath}?${args.joinToString("&")}"
+        return if (site == Site.RUKA || site == Site.WAKU) CatalogPagination.path(base, page)
+            else CatalogPagination.query(base, page)
     }
     fun searchUrl(site: Site, query: String): String {
         val q = URLEncoder.encode(query, "UTF-8")

@@ -9,26 +9,12 @@ import android.os.Handler
 import android.os.Looper
 import com.lagradost.cloudstream3.CommonActivity
 import com.lagradost.cloudstream3.network.WebViewResolver
-import com.lagradost.cloudstream3.plugins.Plugin
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.resume
 
 internal object ProviderBrowser {
     private val showing = AtomicBoolean(false)
-
-    /** Settings remains reachable even when the catalog cannot load. */
-    fun install(plugin: Plugin, sites: List<Pair<String, String>>) {
-        plugin.openSettings = {
-            val activity = CommonActivity.activity
-            if (activity != null && !activity.isFinishing && !activity.isDestroyed) {
-                AlertDialog.Builder(activity).setTitle("เปิดเว็บสำรอง")
-                    .setItems(sites.map { it.first }.toTypedArray()) { _, index ->
-                        watch(sites[index].second)
-                    }.setNegativeButton("ปิด", null).show()
-            }
-        }
-    }
 
     suspend fun open(url: String, reason: String? = null): Boolean = suspendCancellableCoroutine { continuation ->
         Handler(Looper.getMainLooper()).post {

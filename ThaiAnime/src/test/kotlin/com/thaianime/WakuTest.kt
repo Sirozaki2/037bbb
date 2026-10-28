@@ -49,6 +49,6 @@ class WakuTest {
         assertEquals("https://anime-waku.com/page/2/?s=mahou", AnimeParser.pageUrl(Site.WAKU, "https://anime-waku.com/?s=mahou", 2))
         val home = Samples.doc(root.listFiles()!!.first { it.name.startsWith("Anime-Waku") && it.isFile })
         val links = home.select("a[href]").map { java.net.URI(it.attr("href")).rawPath }.toSet()
-        assertTrue(AnimeCategories.homeEntries.getValue(Site.WAKU).all { it.first in links })
+        assertTrue(AnimeCategories.entries.getValue(Site.WAKU).all { it.first in links })
     }
 }

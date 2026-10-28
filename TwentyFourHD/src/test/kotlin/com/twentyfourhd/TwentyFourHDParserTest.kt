@@ -87,4 +87,28 @@ class TwentyFourHDParserTest {
         </div></div>""", "https://www.24hd.today/")
         assertEquals("https://www.24hd.today/poster.jpg", TwentyFourHDParser.cards(doc).single().poster)
     }
+
+    @Test fun `category pagination replaces old page path and keeps search filter`() {
+        assertEquals("https://www.24hd.today/category/action/page/3/?s=movie",
+            TwentyFourHDParser.pageUrl("https://www.24hd.today/category/action/page/2/?s=movie", 3))
+    }
+
+    @Test fun `duplicate episode rows retain every distinct content player`() {
+        val doc = Jsoup.parse("""<h1>Show</h1>
+            <button class=swicth-ep data-link="https://player.example/main">EP.2</button>
+            <button class=swicth-ep data-link="https://player.example/backup" data-link2="https://player.example/main">EP.2</button>""", "https://www.24hd.today/show/")
+        assertEquals(listOf("https://player.example/main", "https://player.example/backup"), TwentyFourHDParser.detail(doc).episodes.single().players)
+    }
+
+    @Test fun `poster index distinguishes adjacent card IDs and grouped CSS selectors`() {
+        val doc = Jsoup.parse("""<style>
+            .e-loop-item-10 .poster {background-image:url('/ten.jpg')}
+            .e-loop-item-1 .poster, .e-loop-item-2 .poster {background-image:url('/shared.jpg')}
+            </style><div class=elementor-widget-loop-grid>
+            <div class="e-loop-item e-loop-item-1"><a class=e-con href=/one/><h2 class=elementor-heading-title>One</h2></a></div>
+            <div class="e-loop-item e-loop-item-10"><a class=e-con href=/ten/><h2 class=elementor-heading-title>Ten</h2></a></div>
+            <div class="e-loop-item e-loop-item-2"><a class=e-con href=/two/><h2 class=elementor-heading-title>Two</h2></a></div>
+            </div>""", "https://www.24hd.today/")
+        assertEquals(listOf("https://www.24hd.today/shared.jpg", "https://www.24hd.today/ten.jpg", "https://www.24hd.today/shared.jpg"), TwentyFourHDParser.cards(doc).map { it.poster })
+    }
 }

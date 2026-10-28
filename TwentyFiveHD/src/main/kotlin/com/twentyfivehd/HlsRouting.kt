@@ -2,7 +2,7 @@ package com.twentyfivehd
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import java.net.URI
-import java.io.IOException
+import com.providers.network.CdnFailoverInterceptor
 import okhttp3.Interceptor
 import okhttp3.Response
 
@@ -56,21 +56,7 @@ internal class HlsRouting(private val master: String, private val hosts: List<St
     }
 }
 
-internal class HlsRoutingInterceptor(private val routing: HlsRouting) : Interceptor {
-    override fun intercept(chain: Interceptor.Chain): Response {
-        val request = chain.request()
-        val urls = routing.mediaUrls(request.url.toString())
-        if (urls.isEmpty()) return chain.proceed(request)
-        var lastError: IOException? = null
-        for ((index, url) in urls.withIndex()) {
-            try {
-                val response = chain.proceed(request.newBuilder().url(url).build())
-                if (response.isSuccessful || index == urls.lastIndex) return response
-                response.close()
-            } catch (error: IOException) {
-                lastError = error
-            }
-        }
-        throw lastError ?: IOException("ไม่พบเซิร์ฟเวอร์วิดีโอที่พร้อมใช้งาน")
-    }
+internal class HlsRoutingInterceptor(routing: HlsRouting) : Interceptor {
+    private val delegate = CdnFailoverInterceptor(routing::mediaUrls)
+    override fun intercept(chain: Interceptor.Chain): Response = delegate.intercept(chain)
 }

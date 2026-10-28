@@ -1,7 +1,6 @@
 package com.thaianime
 
 import android.content.Context
-import com.providers.network.ProviderBrowser
 import com.providers.network.withBrowserFallback
 import com.lagradost.cloudstream3.*
 import com.providers.network.BrowserSession
@@ -9,6 +8,8 @@ import com.lagradost.cloudstream3.network.WebViewResolver
 import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
 import com.lagradost.cloudstream3.plugins.Plugin
 import com.lagradost.cloudstream3.utils.*
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlin.coroutines.cancellation.CancellationException
 
 internal object AnimeNetwork {
@@ -19,7 +20,6 @@ internal object AnimeNetwork {
 class ThaiAnimePlugin : Plugin() {
     override fun load(context: Context) {
         Site.enabled.forEach { registerMainAPI(ThaiAnimeProvider(it)) }
-        ProviderBrowser.install(this, Site.entries.map { (it.label + if (it in Site.enabled) "" else " (ปิดไว้: เปิดเว็บเท่านั้น)") to it.base })
     }
 }
 
@@ -30,8 +30,8 @@ internal class ThaiAnimeProvider(private val site: Site) : MainAPI() {
     override val hasMainPage = true
     override val hasDownloadSupport = true
     override val supportedTypes = setOf(TvType.Anime, TvType.AnimeMovie)
-    override var sequentialMainPage = true
-    override var sequentialMainPageDelay = 100L
+    override var sequentialMainPage = false
+    private val listingRequests = Semaphore(3)
     override val mainPage = AnimeCategories.homeEntries.getValue(site).map { (path, title) -> mainPage(mainUrl + path, title) }
     private val browserSession get() = AnimeNetwork.browserSession
     private suspend fun document(url: String, fresh: Boolean = false, referer: String = mainUrl): org.jsoup.nodes.Document {
@@ -52,9 +52,9 @@ internal class ThaiAnimeProvider(private val site: Site) : MainAPI() {
         if (title.contains("พากย์ไทย")) addDubStatus(DubStatus.Dubbed)
         if (title.contains("ซับไทย") || !title.contains("พากย์ไทย")) addDubStatus(DubStatus.Subbed)
     }
-    override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
+    override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse = listingRequests.withPermit {
         val doc = document(AnimeParser.pageUrl(site, request.data, page))
-        return newHomePageResponse(listOf(HomePageList(request.name, AnimeParser.cards(site, doc).map { it.response() })), AnimeParser.next(site, doc) != null)
+        newHomePageResponse(listOf(HomePageList(request.name, AnimeParser.cards(site, doc).map { it.response() })), AnimeParser.next(site, doc) != null)
     }
     override suspend fun search(query: String): List<SearchResponse> = AnimeParser.cards(site, document(AnimeParser.searchUrl(site, query))).map { it.response() }
     override suspend fun load(url: String): LoadResponse {

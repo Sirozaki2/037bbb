@@ -64,7 +64,6 @@ internal object AnimeCategories {
     )
     // Preserve Suba's existing compact menu; other sites use their primary sections.
     val homeEntries = mapOf(
-        Site.WAKU to entries.getValue(Site.WAKU),
         Site.NEKO to entries.getValue(Site.NEKO).take(4),
         Site.RUKA to entries.getValue(Site.RUKA).take(5),
         Site.SUBA to entries.getValue(Site.SUBA),

@@ -68,4 +68,26 @@ class MovieDoFreeParserTest {
         </div></div></div>""", base)
         assertEquals(base + "real.jpg", MovieDoFreeParser.cards(doc).single().poster)
     }
+
+    @Test fun `disabled and current page controls do not request another page`() {
+        val base = "https://moviedofree.com/page/2/"
+        for (href in listOf("", "#", "#top", base, "javascript:void(0)")) {
+            val doc = org.jsoup.Jsoup.parse("""<div class=pagination><a class="next page-numbers" href="$href">Next</a></div>""", base)
+            assertFalse(href, MovieDoFreeParser.hasNext(doc))
+        }
+        val doc = org.jsoup.Jsoup.parse("""<div class=pagination><a class="next page-numbers" href="/page/3/">Next</a></div>""", base)
+        assertTrue(MovieDoFreeParser.hasNext(doc))
+    }
+
+    @Test fun `pagination replaces an existing page while preserving category filters`() {
+        assertEquals("https://moviedofree.com/category/action/page/3/?year=2024&lang=th",
+            MovieDoFreeParser.pageUrl("https://moviedofree.com/category/action/page/2/?year=2024&lang=th", 3))
+    }
+
+    @Test fun `every category uses an exact captured website menu destination`() {
+        val doc = Jsoup.parse(java.io.File("../samples/regression/moviedofree.com/menu.html").readText(), base)
+        val destinations = doc.select("a[href]").map { it.absUrl("href") }.toSet()
+        SiteCategories.entries.forEach { (path, title) -> assertTrue(title, base.trimEnd('/') + path in destinations) }
+        assertEquals(listOf("หนังล่าสุด", "Action บู้", "Cartoon การ์ตูน", "หนังไทย"), SiteCategories.homeEntries.map { it.second })
+    }
 }
