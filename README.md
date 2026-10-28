@@ -45,8 +45,9 @@
 
 ## ปลั๊กอินสำหรับ Cloudstream
 
-เพิ่ม repository ด้วย `https://raw.githubusercontent.com/jasdwa22/037bb/master/repo.json`
-แล้วติดตั้งปลั๊กอินที่ต้องการจากรายการส่วนขยาย:
+เพิ่ม repository ด้วย `https://raw.githubusercontent.com/Sirozaki2/037bbb/master/repo.json`
+หากเคยเพิ่ม repository ของ `jasdwa22/037bb` ให้เพิ่ม URL ด้านบนเพื่อรับเวอร์ชันของ fork นี้
+แล้วติดตั้งหรืออัปเดตปลั๊กอินจาก repository นี้ในรายการส่วนขยาย:
 
 | ปลั๊กอิน | ชื่อแหล่งในแอป | รองรับ |
 | --- | --- | --- |
@@ -131,7 +132,7 @@ FastCDN ตัวอย่างมี PNG prefix 545 ไบต์ก่อน M
 ทดสอบทุก provider และสร้างแพ็กเกจ:
 
 ```bash
-GITHUB_REPOSITORY=jasdwa22/037bb ./gradlew make makePluginsJson testDebugUnitTest
+GITHUB_REPOSITORY=Sirozaki2/037bbb ./gradlew make makePluginsJson testDebugUnitTest
 ```
 
 ใช้ JDK 17, Android SDK 35 และกำหนด `ANDROID_HOME` ให้ถูกต้อง
