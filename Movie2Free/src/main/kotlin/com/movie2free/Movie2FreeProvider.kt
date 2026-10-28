@@ -1,8 +1,10 @@
 package com.movie2free
 
 import android.content.Context
+import com.providers.network.ProviderBrowser
+import com.providers.network.withBrowserFallback
 import com.lagradost.cloudstream3.*
-import com.lagradost.cloudstream3.network.CloudflareKiller
+import com.providers.network.CloudflareSession
 import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
 import com.lagradost.cloudstream3.plugins.Plugin
 import com.lagradost.cloudstream3.utils.*
@@ -10,7 +12,11 @@ import java.net.URLEncoder
 
 @CloudstreamPlugin
 class Movie2FreePlugin : Plugin() {
-    override fun load(context: Context) { registerMainAPI(Movie2FreeProvider()) }
+    override fun load(context: Context) {
+        val provider = Movie2FreeProvider()
+        registerMainAPI(provider)
+        ProviderBrowser.install(this, listOf(provider.name to provider.mainUrl))
+    }
 }
 
 class Movie2FreeProvider : MainAPI() {
@@ -28,7 +34,7 @@ class Movie2FreeProvider : MainAPI() {
         "/drama/" to "ดราม่า", "/horror/" to "สยองขวัญ", "/comedy/" to "ตลก",
         "/sci-fi/" to "ไซไฟ", "/thriller/" to "ระทึกขวัญ", "/cartoon/" to "การ์ตูน",
     ).map { (path, title) -> mainPage(mainUrl + path, title) }
-    private val cloudflare by lazy { CloudflareKiller() }
+    private val cloudflare by lazy { CloudflareSession() }
     private suspend fun document(url: String, referer: String = mainUrl, fresh: Boolean = false): org.jsoup.nodes.Document {
         val result = if (fresh) app.get(url, referer = referer, interceptor = cloudflare, cacheTime = 0)
             else app.get(url, referer = referer, interceptor = cloudflare)
@@ -58,7 +64,10 @@ class Movie2FreeProvider : MainAPI() {
     override fun getVideoInterceptor(extractorLink: ExtractorLink): okhttp3.Interceptor? =
         if (extractorLink.extractorData == "fastcdn-png545") FastCdnInterceptor() else null
 
-    override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
+    override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean =
+        withBrowserFallback(data, callback) { emit -> loadVideoLinks(data, isCasting, subtitleCallback, emit) }
+
+    private suspend fun loadVideoLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
         val embed = Movie2FreeParser.embed(document(data, fresh = true))
             ?: throw ErrorLoadingException("Movie2Free.co ไม่พบตัวเล่นของเรื่องนี้")
         var found = false

@@ -43,6 +43,7 @@ subprojects {
 
     android {
         namespace = "com.example"
+        sourceSets.getByName("main").java.srcDir(rootProject.file("shared/src/main/kotlin"))
 
         defaultConfig {
             minSdk = 21
@@ -78,6 +79,8 @@ subprojects {
         // but you don't need to include any of them if you don't need them.
         // https://github.com/recloudstream/cloudstream/blob/master/app/build.gradle.kts
         implementation(kotlin("stdlib")) // Adds Standard Kotlin Features
+        // Cloudstream supplies coroutines at runtime; shared Cloudflare handling uses runBlocking.
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
         // Required when Kotlin reads nullability annotations from the Cloudstream API.
         implementation("org.jspecify:jspecify:1.0.0")
         implementation("com.github.Blatzar:NiceHttp:0.4.11") // HTTP Lib

@@ -1,8 +1,10 @@
 package com.twentyfourhd
 
 import android.content.Context
+import com.providers.network.ProviderBrowser
+import com.providers.network.withBrowserFallback
 import com.lagradost.cloudstream3.*
-import com.lagradost.cloudstream3.network.CloudflareKiller
+import com.providers.network.CloudflareSession
 import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
 import com.lagradost.cloudstream3.plugins.Plugin
 import com.lagradost.cloudstream3.utils.*
@@ -11,7 +13,11 @@ import java.util.concurrent.CancellationException
 
 @CloudstreamPlugin
 class TwentyFourHDPlugin : Plugin() {
-    override fun load(context: Context) { registerMainAPI(TwentyFourHDProvider()) }
+    override fun load(context: Context) {
+        val provider = TwentyFourHDProvider()
+        registerMainAPI(provider)
+        ProviderBrowser.install(this, listOf(provider.name to provider.mainUrl))
+    }
 }
 
 class TwentyFourHDProvider : MainAPI() {
@@ -24,7 +30,7 @@ class TwentyFourHDProvider : MainAPI() {
     override var sequentialMainPage = true
     override var sequentialMainPageDelay = 100L
     override val mainPage = SiteCategories.homeEntries.map { (path, title) -> mainPage(mainUrl + path, title) }
-    private val cloudflare by lazy { CloudflareKiller() }
+    private val cloudflare by lazy { CloudflareSession() }
     private suspend fun document(url: String, fresh: Boolean = false): org.jsoup.nodes.Document {
         val response = if (fresh) app.get(url, interceptor = cloudflare, cacheTime = 0) else app.get(url, interceptor = cloudflare)
         if (response.code !in 200..299) throw ErrorLoadingException("เว็บปฏิเสธการเข้าถึง (HTTP ${response.code})")
@@ -56,7 +62,10 @@ class TwentyFourHDProvider : MainAPI() {
         return newMovieLoadResponse(detail.title, url, TvType.Movie, url) { posterUrl = detail.poster; posterHeaders = mapOf("Referer" to url); plot = detail.plot }
     }
 
-    override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
+    override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean =
+        withBrowserFallback(data.substringBefore('#'), callback) { emit -> loadVideoLinks(data, isCasting, subtitleCallback, emit) }
+
+    private suspend fun loadVideoLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
         val page = data.substringBefore('#')
         val detail = TwentyFourHDParser.detail(document(page, fresh = true))
         val episode = data.substringAfter("#episode=", "").toIntOrNull()
@@ -65,7 +74,7 @@ class TwentyFourHDProvider : MainAPI() {
         for ((index, url) in players.withIndex()) {
             // A broken backup must not discard links already found from another player.
             val result = runCatching {
-                val response = app.get(url, referer = page, cacheTime = 0)
+                val response = app.get(url, referer = page, interceptor = cloudflare, cacheTime = 0)
                 TwentyFourHDParser.stream(response.document.apply { setBaseUri(response.url) })?.let { stream ->
                     callback(newExtractorLink(name, listOfNotNull(detail.audio, if (index == 0) "ตัวเล่นหลัก" else "สำรอง $index").joinToString(" - "), stream, ExtractorLinkType.M3U8) {
                         referer = response.url; quality = Qualities.Unknown.value

@@ -1,6 +1,8 @@
 package com.example
 
 import com.lagradost.cloudstream3.*
+import com.providers.network.CloudflareSession
+import com.providers.network.withBrowserFallback
 import com.lagradost.cloudstream3.utils.*
 import java.net.URLEncoder
 import kotlin.coroutines.cancellation.CancellationException
@@ -22,12 +24,19 @@ class ExampleProvider : MainAPI() {
     override var sequentialMainPageDelay = 100L
     override val mainPage = SiteCategories.homeEntries.map { (path, title) -> mainPage(mainUrl + path, title) }
 
+    private val cloudflare by lazy { CloudflareSession() }
+    private suspend fun document(url: String, fresh: Boolean = false): org.jsoup.nodes.Document {
+        val response = if (fresh) app.get(url, interceptor = cloudflare, cacheTime = 0) else app.get(url, interceptor = cloudflare)
+        if (response.code !in 200..299) throw ErrorLoadingException("$name โหลดหน้าเว็บไม่ได้ (HTTP ${response.code})")
+        return response.document.apply { setBaseUri(response.url) }
+    }
+
     override suspend fun getMainPage(
         page: Int,
         request: MainPageRequest
     ): HomePageResponse {
         val url = MovieListingParser.pageUrl(request.data, page)
-        val document = app.get(url).document.apply { setBaseUri(url) }
+        val document = document(url)
         val home = MovieListingParser.parse(document).map { it.toSearchResult() }
 
         return newHomePageResponse(
@@ -54,12 +63,12 @@ class ExampleProvider : MainAPI() {
 
     override suspend fun search(query: String): List<SearchResponse> {
         val url = "$mainUrl/?s=${URLEncoder.encode(query, "UTF-8")}"
-        val document = app.get(url).document.apply { setBaseUri(url) }
+        val document = document(url)
         return MovieListingParser.parse(document).map { it.toSearchResult() }
     }
 
     override suspend fun load(url: String): LoadResponse {
-        val document = app.get(url).document.apply { setBaseUri(url) }
+        val document = document(url)
 
         val details = MovieDetailsParser.parse(document)
         val title = details.title
@@ -89,14 +98,17 @@ class ExampleProvider : MainAPI() {
         }
     }
 
-    override suspend fun loadLinks(
+    override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean =
+        withBrowserFallback(data, callback) { emit -> loadVideoLinks(data, isCasting, subtitleCallback, emit) }
+
+    private suspend fun loadVideoLinks(
         data: String,
         isCasting: Boolean,
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
         // Tickets and player contexts expire, so request a fresh detail page for each play.
-        val doc = app.get(data, cacheTime = 0).document.apply { setBaseUri(data) }
+        val doc = document(data, fresh = true)
         val playerUrls = MoviePlayerParser.parse(doc).toMutableList()
         Regex("""(https?://[a-zA-Z0-9.-]*streamhls[a-zA-Z0-9.-]*/[^\s"'<>]+)""")
             .findAll(doc.html()).forEach {
@@ -105,7 +117,7 @@ class ExampleProvider : MainAPI() {
 
         val resolver = StreamHlsResolver(
             get = { url, referer ->
-                val response = app.get(url, referer = referer, cacheTime = 0)
+                val response = app.get(url, referer = referer, interceptor = cloudflare, cacheTime = 0)
                 PlayerPage(response.url, response.text)
             },
             post = { url, referer, payload ->
@@ -117,6 +129,7 @@ class ExampleProvider : MainAPI() {
                         "X-Requested-With" to "XMLHttpRequest"
                     ),
                     json = payload,
+                    interceptor = cloudflare,
                     cacheTime = 0
                 )
                 PlayerPage(response.url, response.text)

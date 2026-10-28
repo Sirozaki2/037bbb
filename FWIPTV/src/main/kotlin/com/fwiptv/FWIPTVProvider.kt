@@ -1,8 +1,10 @@
 package com.fwiptv
 
 import android.content.Context
+import com.providers.network.ProviderBrowser
+import com.providers.network.withBrowserFallback
 import com.lagradost.cloudstream3.*
-import com.lagradost.cloudstream3.network.CloudflareKiller
+import com.providers.network.CloudflareSession
 import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
 import com.lagradost.cloudstream3.plugins.Plugin
 import com.lagradost.cloudstream3.utils.*
@@ -11,7 +13,11 @@ import kotlin.coroutines.cancellation.CancellationException
 
 @CloudstreamPlugin
 class FWIPTVPlugin : Plugin() {
-    override fun load(context: Context) { registerMainAPI(FWIPTVProvider()) }
+    override fun load(context: Context) {
+        val provider = FWIPTVProvider()
+        registerMainAPI(provider)
+        ProviderBrowser.install(this, listOf(provider.name to provider.mainUrl))
+    }
 }
 
 class FWIPTVProvider : MainAPI() {
@@ -24,7 +30,7 @@ class FWIPTVProvider : MainAPI() {
     override var sequentialMainPage = true
     override var sequentialMainPageDelay = 100L
     override val mainPage = SiteCategories.entries.map { (path, title) -> mainPage(mainUrl + path, title) }
-    private val cloudflare by lazy { CloudflareKiller() }
+    private val cloudflare by lazy { CloudflareSession() }
     private suspend fun document(url: String, fresh: Boolean = false): org.jsoup.nodes.Document {
         val response = if (fresh) app.get(url, interceptor = cloudflare, cacheTime = 0) else app.get(url, interceptor = cloudflare)
         if (response.code !in 200..299) throw ErrorLoadingException("FWIP TV ไม่พร้อมใช้งาน (HTTP ${response.code})")
@@ -49,7 +55,10 @@ class FWIPTVProvider : MainAPI() {
             posterUrl = detail.poster; posterHeaders = mapOf("Referer" to url); plot = detail.plot; tags = detail.tags
         }
     }
-    override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
+    override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean =
+        withBrowserFallback(data, callback) { emit -> loadVideoLinks(data, isCasting, subtitleCallback, emit) }
+
+    private suspend fun loadVideoLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
         val embed = FWIPParser.embed(document(data, fresh = true))
             ?: throw ErrorLoadingException("FWIP TV ไม่พบตัวเล่นของเรื่องนี้")
         var found = false

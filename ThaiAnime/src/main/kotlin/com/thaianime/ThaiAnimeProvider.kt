@@ -1,18 +1,25 @@
 package com.thaianime
 
 import android.content.Context
+import com.providers.network.ProviderBrowser
+import com.providers.network.withBrowserFallback
 import com.lagradost.cloudstream3.*
-import com.lagradost.cloudstream3.network.CloudflareKiller
+import com.providers.network.CloudflareSession
 import com.lagradost.cloudstream3.network.WebViewResolver
 import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
 import com.lagradost.cloudstream3.plugins.Plugin
 import com.lagradost.cloudstream3.utils.*
 import kotlin.coroutines.cancellation.CancellationException
 
+internal object AnimeNetwork {
+    val cloudflare by lazy { CloudflareSession() }
+}
+
 @CloudstreamPlugin
 class ThaiAnimePlugin : Plugin() {
     override fun load(context: Context) {
         Site.enabled.forEach { registerMainAPI(ThaiAnimeProvider(it)) }
+        ProviderBrowser.install(this, Site.entries.map { (it.label + if (it in Site.enabled) "" else " (ปิดไว้: เปิดเว็บเท่านั้น)") to it.base })
     }
 }
 
@@ -26,7 +33,7 @@ internal class ThaiAnimeProvider(private val site: Site) : MainAPI() {
     override var sequentialMainPage = true
     override var sequentialMainPageDelay = 100L
     override val mainPage = AnimeCategories.homeEntries.getValue(site).map { (path, title) -> mainPage(mainUrl + path, title) }
-    private val cloudflare by lazy { CloudflareKiller() }
+    private val cloudflare get() = AnimeNetwork.cloudflare
     private suspend fun document(url: String, fresh: Boolean = false, referer: String = mainUrl): org.jsoup.nodes.Document {
         val wakuPlayback = site == Site.WAKU && fresh
         val headers = when {
@@ -68,9 +75,13 @@ internal class ThaiAnimeProvider(private val site: Site) : MainAPI() {
         val host = runCatching { java.net.URI(extractorLink.url).host }.getOrNull() ?: return null
         return AnimeMamiInterceptor(host, cloudflare)
     }
-    override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
+    override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean =
+        withBrowserFallback(data, callback) { emit -> loadVideoLinks(data, isCasting, subtitleCallback, emit) }
+
+    private suspend fun loadVideoLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
         val visited = mutableSetOf<String>()
         val emitted = mutableSetOf<String>()
+        var playbackFailure: String? = null
         val emit: (ExtractorLink) -> Unit = { if (emitted.add(it.url)) callback(it) }
         suspend fun resolve(source: PlayerSource, referer: String, depth: Int) {
             if (depth > 5 || !visited.add(source.url) || visited.size > 20) return
@@ -96,7 +107,9 @@ internal class ThaiAnimeProvider(private val site: Site) : MainAPI() {
                     }
                 } else if (site == Site.SUBA && SubaPlayer.isPlayer(source.url)) {
                     val resolver = SubaPlayer { url, ref ->
-                        val response = app.get(url, referer = ref, interceptor = cloudflare, cacheTime = 0)
+                        // Reuse clearance without opening a separate challenge for the player
+                        // and ad configuration. The resolver has a verified content-origin fallback.
+                        val response = app.get(url, referer = ref, headers = cloudflare.getCookieHeaders(url), cacheTime = 0)
                         if (response.code !in 200..299) throw ErrorLoadingException("Suba player HTTP ${response.code}")
                         response.document.apply { setBaseUri(response.url) }
                     }
@@ -118,7 +131,10 @@ internal class ThaiAnimeProvider(private val site: Site) : MainAPI() {
                     })
                     else AnimePlayer.unwrap(doc).forEach { resolve(it.copy(label = source.label), source.url, depth + 1) }
                 } else loadExtractor(source.url, referer, subtitleCallback, emit)
-            } catch (error: Exception) { if (error is CancellationException) throw error }
+            } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                if (error is ErrorLoadingException) playbackFailure = error.message
+            }
         }
         suspend fun page(url: String, depth: Int) {
             if (depth > 1) return
@@ -180,7 +196,8 @@ internal class ThaiAnimeProvider(private val site: Site) : MainAPI() {
                 } catch (error: Exception) { if (error is CancellationException) throw error }
             }
         } else page(data, 0)
-        if (emitted.isEmpty()) throw ErrorLoadingException("$name ไม่พบลิงก์ที่เล่นได้ โฮสต์วิดีโออาจบล็อกหรือยังไม่รองรับ ลองตัวเล่นอื่นในเว็บ")
+        if (emitted.isEmpty()) throw ErrorLoadingException("$name ไม่พบลิงก์ที่เล่นได้" +
+            (playbackFailure?.let { " ($it)" } ?: " โฮสต์วิดีโออาจบล็อกหรือยังไม่รองรับ ลองตัวเล่นอื่นในเว็บ"))
         return true
     }
 }
