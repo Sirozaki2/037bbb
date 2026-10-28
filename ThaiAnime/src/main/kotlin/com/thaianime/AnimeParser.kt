@@ -14,7 +14,7 @@ internal enum class Site(val base: String, val label: String) {
     WAKU("https://anime-waku.com", "Anime-Waku");
 
     companion object {
-        val enabled = listOf(NEKO, RUKA, SUBA, WAKU)
+        val enabled = listOf(NEKO, RUKA, SUBA)
     }
 }
 internal data class AnimeCard(val title: String, val url: String, val poster: String?, val movie: Boolean)

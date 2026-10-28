@@ -66,4 +66,14 @@ class Movie2FreeHDParserTest {
         assertNull(Movie2FreeHDParser.embed("""{"embed_url":"javascript:alert(1)"}""", base))
         assertEquals("https://meeplayer.com/play/test", Movie2FreeHDParser.embed("""{"embed_url":"https:\/\/meeplayer.com\/play\/test"}""", base))
     }
+
+    @Test fun `disabled and current page controls do not request another page`() {
+        val base = "https://movie2freehd.com/page/2/"
+        for (href in listOf("", "#", "#top", base, "javascript:void(0)")) {
+            val doc = org.jsoup.Jsoup.parse("""<div class=pagination><a class="next" href="$href">Next</a></div>""", base)
+            assertFalse(href, Movie2FreeHDParser.hasNext(doc))
+        }
+        val doc = org.jsoup.Jsoup.parse("""<div class=pagination><a class="next" href="/page/3/">Next</a></div>""", base)
+        assertTrue(Movie2FreeHDParser.hasNext(doc))
+    }
 }

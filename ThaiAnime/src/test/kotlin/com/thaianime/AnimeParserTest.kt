@@ -27,8 +27,8 @@ internal object Samples {
 }
 
 class AnimeParserTest {
-    @Test fun `published sites exclude retired Seven and keep compact navigable menus`() {
-        assertEquals(listOf(Site.NEKO, Site.RUKA, Site.SUBA, Site.WAKU), Site.enabled)
+    @Test fun `published sites exclude retired Seven and Waku and keep compact navigable menus`() {
+        assertEquals(listOf(Site.NEKO, Site.RUKA, Site.SUBA), Site.enabled)
         assertEquals(Site.enabled.toSet(), AnimeCategories.homeEntries.keys)
         Site.enabled.forEach { site ->
             val home = AnimeCategories.homeEntries.getValue(site)

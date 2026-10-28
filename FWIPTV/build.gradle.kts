@@ -1,4 +1,4 @@
-version = 5
+version = 6
 cloudstream {
     language = "th"
     description = "FWIP TV หนังและซีรีส์ (ทดลอง: ตัวเล่นยังรอทดสอบบนอุปกรณ์)"

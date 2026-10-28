@@ -87,4 +87,9 @@ class TwentyFourHDParserTest {
         </div></div>""", "https://www.24hd.today/")
         assertEquals("https://www.24hd.today/poster.jpg", TwentyFourHDParser.cards(doc).single().poster)
     }
+
+    @Test fun `category pagination replaces old page path and keeps search filter`() {
+        assertEquals("https://www.24hd.today/category/action/page/3/?s=movie",
+            TwentyFourHDParser.pageUrl("https://www.24hd.today/category/action/page/2/?s=movie", 3))
+    }
 }

@@ -1,7 +1,6 @@
 package com.twentyfivehd
 
 import android.content.Context
-import com.providers.network.ProviderBrowser
 import com.providers.network.withBrowserFallback
 import com.lagradost.cloudstream3.*
 import com.providers.network.BrowserSession
@@ -9,6 +8,8 @@ import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
 import com.lagradost.cloudstream3.plugins.Plugin
 import com.lagradost.cloudstream3.utils.*
 import java.net.URLEncoder
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlin.coroutines.cancellation.CancellationException
 
 @CloudstreamPlugin
@@ -16,7 +17,6 @@ class TwentyFiveHDPlugin : Plugin() {
     override fun load(context: Context) {
         val provider = TwentyFiveHDProvider()
         registerMainAPI(provider)
-        ProviderBrowser.install(this, listOf(provider.name to provider.mainUrl))
     }
 }
 
@@ -27,8 +27,8 @@ class TwentyFiveHDProvider : MainAPI() {
     override val hasMainPage = true
     override val hasDownloadSupport = true
     override val supportedTypes = setOf(TvType.Movie, TvType.TvSeries)
-    override var sequentialMainPage = true
-    override var sequentialMainPageDelay = 100L
+    override var sequentialMainPage = false
+    private val listingRequests = Semaphore(3)
     override val mainPage = SiteCategories.homeEntries.map { (path, title) -> mainPage(mainUrl + path, title) }
 
     private val browserSession by lazy { BrowserSession() }
@@ -44,10 +44,10 @@ class TwentyFiveHDProvider : MainAPI() {
         newMovieSearchResponse(title, url, TvType.Movie) { posterUrl = poster }
     }
 
-    override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
-        val url = if (page == 1) request.data else "${request.data.trimEnd('/')}/page/$page/"
+    override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse = listingRequests.withPermit {
+        val url = TwentyFiveParser.pageUrl(request.data, page)
         val doc = document(url)
-        return newHomePageResponse(listOf(HomePageList(request.name, TwentyFiveParser.cards(doc).map { it.response() })), TwentyFiveParser.hasNext(doc))
+        newHomePageResponse(listOf(HomePageList(request.name, TwentyFiveParser.cards(doc).map { it.response() })), TwentyFiveParser.hasNext(doc))
     }
 
     override suspend fun search(query: String): List<SearchResponse> {

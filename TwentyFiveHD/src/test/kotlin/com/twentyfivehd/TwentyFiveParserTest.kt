@@ -74,4 +74,19 @@ class TwentyFiveParserTest {
             assertTrue("$label points to $path", label.contains(path.substringAfterLast('/')))
         }
     }
+
+    @Test fun `disabled and current page controls do not request another page`() {
+        val base = "https://25-hd.com/page/2/"
+        for (href in listOf("", "#", "#top", base, "javascript:void(0)")) {
+            val doc = org.jsoup.Jsoup.parse("""<div class=pagination><a class="next page-numbers" href="$href">Next</a></div>""", base)
+            assertFalse(href, TwentyFiveParser.hasNext(doc))
+        }
+        val doc = org.jsoup.Jsoup.parse("""<div class=pagination><a class="next page-numbers" href="/page/3/">Next</a></div>""", base)
+        assertTrue(TwentyFiveParser.hasNext(doc))
+    }
+
+    @Test fun `pagination replaces an existing page while preserving category filters`() {
+        assertEquals("https://25-hd.com/category/action/page/3/?year=2024&lang=th",
+            TwentyFiveParser.pageUrl("https://25-hd.com/category/action/page/2/?year=2024&lang=th", 3))
+    }
 }

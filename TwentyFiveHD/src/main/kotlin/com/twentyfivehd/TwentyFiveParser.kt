@@ -2,6 +2,7 @@ package com.twentyfivehd
 
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
+import java.net.URI
 
 internal data class MovieCard(val title: String, val url: String, val poster: String?, val series: Boolean)
 internal data class MovieDetail(val title: String, val poster: String?, val plot: String?, val embed: String, val tags: List<String>)
@@ -34,5 +35,18 @@ internal object TwentyFiveParser {
         )
     }
 
-    fun hasNext(document: Document): Boolean = document.select("a.next.page-numbers[href]").isNotEmpty()
+    fun pageUrl(url: String, page: Int): String {
+        if (page <= 1) return url
+        val uri = URI(url)
+        val path = uri.rawPath.trimEnd('/').replace(Regex("/page/\\d+$"), "")
+        return "${uri.scheme}://${uri.rawAuthority}$path/page/$page/" + (uri.rawQuery?.let { "?$it" } ?: "")
+    }
+
+    fun hasNext(document: Document): Boolean = document.select("a.next.page-numbers[href]").any {
+        val href = it.attr("href").trim()
+        val url = it.absUrl("href")
+        href.isNotBlank() && !href.startsWith('#') &&
+            (url.startsWith("https://") || url.startsWith("http://")) &&
+            url.substringBefore('#') != document.baseUri().substringBefore('#')
+    }
 }

@@ -41,7 +41,12 @@ internal object MovieListingParser {
 
     fun hasNextPage(document: Document): Boolean = document.select(
         "link[rel=next][href], a[rel=next][href], a.nextpostslink[href]"
-    ).any { it.absUrl("href").isHttpUrl() && it.attr("href") != "#" }
+    ).any {
+        val href = it.attr("href").trim()
+        val url = it.absUrl("href")
+        href.isNotBlank() && !href.startsWith('#') && url.isHttpUrl() &&
+            url.substringBefore('#') != document.baseUri().substringBefore('#')
+    }
 
     private fun String.isHttpUrl(): Boolean = startsWith("https://") || startsWith("http://")
 }

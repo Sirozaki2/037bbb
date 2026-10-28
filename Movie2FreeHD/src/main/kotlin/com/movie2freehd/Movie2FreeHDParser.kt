@@ -77,5 +77,9 @@ internal object Movie2FreeHDParser {
         val path = uri.rawPath.trimEnd('/').replace(Regex("/page/\\d+$"), "")
         return "${uri.scheme}://${uri.rawAuthority}$path/page/$page/" + (uri.rawQuery?.let { "?$it" } ?: "")
     }
-    fun hasNext(doc: Document): Boolean = doc.select(".pagination a.next[href]").any { httpUrl(doc.baseUri(), it.attr("href")) != null }
+    fun hasNext(doc: Document): Boolean = doc.select(".pagination a.next[href]").any {
+        httpUrl(doc.baseUri(), it.attr("href"))?.substringBefore('#')?.let { target ->
+            target != doc.baseUri().substringBefore('#')
+        } == true
+    }
 }

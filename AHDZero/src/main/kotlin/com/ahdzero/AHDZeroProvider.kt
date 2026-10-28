@@ -1,7 +1,6 @@
 package com.ahdzero
 
 import android.content.Context
-import com.providers.network.ProviderBrowser
 import com.providers.network.withBrowserFallback
 import com.lagradost.cloudstream3.*
 import com.providers.network.BrowserSession
@@ -17,7 +16,6 @@ class AHDZeroPlugin : Plugin() {
     override fun load(context: Context) {
         val provider = AHDZeroProvider()
         registerMainAPI(provider)
-        ProviderBrowser.install(this, listOf(provider.name to provider.mainUrl))
     }
 }
 

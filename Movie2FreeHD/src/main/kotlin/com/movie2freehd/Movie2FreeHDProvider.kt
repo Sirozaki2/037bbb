@@ -1,7 +1,6 @@
 package com.movie2freehd
 
 import android.content.Context
-import com.providers.network.ProviderBrowser
 import com.providers.network.withBrowserFallback
 import com.lagradost.cloudstream3.*
 import com.providers.network.BrowserSession
@@ -18,7 +17,6 @@ class Movie2FreeHDPlugin : Plugin() {
     override fun load(context: Context) {
         val provider = Movie2FreeHDProvider()
         registerMainAPI(provider)
-        ProviderBrowser.install(this, listOf(provider.name to provider.mainUrl))
     }
 }
 

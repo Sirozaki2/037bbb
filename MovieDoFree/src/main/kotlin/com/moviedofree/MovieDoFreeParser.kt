@@ -17,7 +17,8 @@ internal object MovieDoFreeParser {
     fun pageUrl(url: String, page: Int): String {
         if (page <= 1) return url
         val uri = URI(url)
-        return "${uri.scheme}://${uri.rawAuthority}${uri.rawPath.trimEnd('/')}/page/$page/" +
+        val path = uri.rawPath.trimEnd('/').replace(Regex("/page/\\d+$"), "")
+        return "${uri.scheme}://${uri.rawAuthority}$path/page/$page/" +
             (uri.rawQuery?.let { "?$it" } ?: "")
     }
 
@@ -47,5 +48,11 @@ internal object MovieDoFreeParser {
         }.distinct().toList()
     }
 
-    fun hasNext(document: Document): Boolean = document.select("a.next.page-numbers[href]").isNotEmpty()
+    fun hasNext(document: Document): Boolean = document.select("a.next.page-numbers[href]").any {
+        val href = it.attr("href").trim()
+        val url = it.absUrl("href")
+        href.isNotBlank() && !href.startsWith('#') &&
+            (url.startsWith("https://") || url.startsWith("http://")) &&
+            url.substringBefore('#') != document.baseUri().substringBefore('#')
+    }
 }

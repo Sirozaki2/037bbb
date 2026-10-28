@@ -75,7 +75,7 @@ internal object TwentyFourHDParser {
     fun pageUrl(url: String, page: Int): String {
         if (page <= 1) return url
         val parts = url.split('?', limit = 2)
-        return parts[0].trimEnd('/') + "/page/$page/" + (parts.getOrNull(1)?.let { "?$it" } ?: "")
+        return parts[0].trimEnd('/').replace(Regex("/page/\\d+$"), "") + "/page/$page/" + (parts.getOrNull(1)?.let { "?$it" } ?: "")
     }
 
     fun pageUrl(doc: Document, page: Int): String {
