@@ -30,7 +30,9 @@
 ## แพ็กเกจและการตรวจ
 
 เจ็ดแพ็กเกจที่เผยแพร่คือ ExampleProvider, TwentyFiveHD, MovieDoFree, Movie2FreeHD, AHDZero, TwentyFourHD, ThaiAnime
-ThaiAnime ลงทะเบียน Neko-Miku/AnimeRuka/Suba-Anime รวมทั้งหมดเก้าแหล่ง
+ThaiAnime ลงทะเบียน AnimeRuka/Indy-Anime/Neko-Miku/Suba-Anime รวมทั้งหมดสิบแหล่ง
+Indy ใช้ IndyAnimeProvider/IndyParser/IndyPlayer แยกจาก Site enum เดิม; อ่านเฉพาะ main catalog, กลุ่มตอน และตัวเลือกใน #mpPlayer
+IndyPlayer ยอมรับ MP4 เฉพาะ host/path ที่ตรง ID ของ embed จาก Clappr ที่สังเกตได้จริง และส่งต่อ extractor/เว็บสำรองเมื่อไม่รองรับ
 โค้ด shared ถูกคอมไพล์เข้าแต่ละแพ็กเกจโดย root build script; หากเปลี่ยน shared ต้องเพิ่ม version ของทุก consumer ที่สร้างใหม่
 
 `ExampleProvider/src/test/.../com/providers/network/` ตรวจ helper ร่วม รวม response ownership, cancellation และ Android UI
